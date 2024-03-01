@@ -6,3 +6,4 @@ riderModule.iml
 .DS_Store
 target/
 .idea/
+/src/rust-core/glyphfx-winit/.idea
