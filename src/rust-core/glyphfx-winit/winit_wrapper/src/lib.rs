@@ -5,6 +5,7 @@ use winit::{
 };
 use winit::event_loop::EventLoopWindowTarget;
 use winit::keyboard::PhysicalKey;
+use winit::raw_window_handle::{HasDisplayHandle, HasWindowHandle, RawDisplayHandle, RawWindowHandle};
 
 #[repr(C)]
 pub struct KeyboardEventData {
@@ -17,6 +18,8 @@ type KeyboardEventCallback = extern "C" fn(KeyboardEventData);
 pub struct EventLoopState {
     target: Option<*const EventLoopWindowTarget<()>>,
     window: Option<*const Window>,
+    display_handle: Option<RawDisplayHandle>,
+    window_handle: Option<RawWindowHandle>,
 }
 
 type InitStateCallback = extern "C" fn(*const EventLoopState);
@@ -57,6 +60,8 @@ pub extern "C" fn run_loop(keyboard_callback: KeyboardEventCallback, init_state:
     let mut state = EventLoopState {
         target: None,
         window: None,
+        display_handle: None,
+        window_handle: None,
     };
 
     let _ = event_loop.run(move |event, target| {
@@ -109,6 +114,9 @@ pub extern "C" fn run_loop(keyboard_callback: KeyboardEventCallback, init_state:
                 let window_ptr = &_window as *const _;
                 state.target = Some(target_ptr);
                 state.window = Some(window_ptr);
+
+                state.display_handle = Some(_window.display_handle().unwrap().as_raw());
+                state.window_handle = Some(_window.window_handle().unwrap().as_raw());
                 init_state(&state);
             },
             _ => {}
@@ -136,13 +144,26 @@ pub extern "C" fn request_redraw(state: *const EventLoopState) {
     }
 }
 
+//get display handle
 #[no_mangle]
-pub extern "C" fn get_window(state: *const EventLoopState) -> *const Window {
+pub extern "C" fn get_display_handle(state: *const EventLoopState) -> RawDisplayHandle {
     unsafe {
-        if let Some(window_ptr) = (*state).window {
-            window_ptr
+        if let Some(display_handle) = (*state).display_handle {
+            display_handle
         } else {
-            std::ptr::null()
+            panic!("Display handle not found")
+        }
+    }
+}
+
+//get window handle
+#[no_mangle]
+pub extern "C" fn get_window_handle(state: *const EventLoopState) -> RawWindowHandle {
+    unsafe {
+        if let Some(window_handle) = (*state).window_handle {
+            window_handle
+        } else {
+            panic!("Window handle not found")
         }
     }
 }

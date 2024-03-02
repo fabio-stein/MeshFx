@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 winit_wrapper = { path = "../winit_wrapper" }
 wgpu_wrapper = { path = "../wgpu_wrapper" }
+futures = "0.3.30"

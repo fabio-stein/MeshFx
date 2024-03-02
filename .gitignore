@@ -10,3 +10,4 @@ target/
 src/rust-core/glyphfx-winit/.idea/glyphfx-winit.iml
 GlyphFX.Window/libwinit_wrapper.dylib
 GlyphFX.WebGpu/libwgpu_wrapper.dylib
+src/rust-core/glyphfx-winit/.idea/glyphfx-winit.iml
