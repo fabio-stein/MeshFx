@@ -1,10 +1,12 @@
+use wgpu_wrapper::hello;
 use winit_wrapper::run_loop;
 
 
 
 
 fn main() {
-    run_loop(keyboard_event_callback, init_state_callback, cursor_moved_callback, mouse_input_callback, redraw_requested_callback, close_requested_callback);
+    hello();
+    //run_loop(keyboard_event_callback, init_state_callback, cursor_moved_callback, mouse_input_callback, redraw_requested_callback, close_requested_callback);
 }
 
 extern "C" fn init_state_callback(state: *const winit_wrapper::EventLoopState) {

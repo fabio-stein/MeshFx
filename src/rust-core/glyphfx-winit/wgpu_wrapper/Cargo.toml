@@ -1,10 +1,12 @@
 [package]
-name = "dev_console"
+name = "wgpu_wrapper"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-winit_wrapper = { path = "../winit_wrapper" }
-wgpu_wrapper = { path = "../wgpu_wrapper" }
+wgpu = "0.19.3"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
