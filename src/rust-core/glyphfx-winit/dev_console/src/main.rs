@@ -1,4 +1,4 @@
-use winit_wrapper::{exit_target, run_loop};
+use winit_wrapper::run_loop;
 
 
 
@@ -9,7 +9,7 @@ fn main() {
 
 extern "C" fn init_state_callback(state: *const winit_wrapper::EventLoopState) {
     unsafe {
-        let state = &*state;
+        //let state = &*state;
         println!("Event loop state");
 
         //exit_target(state);
@@ -25,7 +25,7 @@ extern "C" fn mouse_input_callback(event_data: winit_wrapper::MouseInputEventDat
 
 extern "C" fn cursor_moved_callback(event_data: winit_wrapper::CursorMovedEventData) {
     unsafe {
-        let event_data = event_data;
+        //let event_data = event_data;
         //println!("Cursor moved: ({}, {})", event_data.x, event_data.y);
     }
 }

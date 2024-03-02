@@ -4,14 +4,19 @@ namespace GlyphFX.Window;
 
 public class Winit
 {
-    [DllImport("libwinit_wrapper")]
+    const string Lib = "libwinit_wrapper";
+    
+    [DllImport(Lib)]
     public static extern void run_loop(KeyboardEventCallback keyboardEvent, InitStateCallback stateCallback, CursorMovedCallback cursorMovedCallback, MouseInputCallback mouseInputCallback, RedrawRequestedCallback redrawRequestedCallback, CloseRequestedCallback closeRequestedCallback);
     
-    [DllImport("libwinit_wrapper")]
+    [DllImport(Lib)]
     public static extern void exit_target(IntPtr state);
     
-    [DllImport("libwinit_wrapper")]
+    [DllImport(Lib)]
     public static extern void request_redraw(IntPtr state);
+    
+    [DllImport(Lib)]
+    public static extern IntPtr get_window(IntPtr state);
 
     public delegate void KeyboardEventCallback(KeyboardEventData eventData);
     public delegate void InitStateCallback(IntPtr stateData);

@@ -1,13 +1,10 @@
-use std::os::raw::c_int;
-use std::ffi::c_void;
-use std::os::macos::raw::stat;
 use winit::{
     event::{Event, WindowEvent},
     event_loop::EventLoop,
     window::Window,
 };
 use winit::event_loop::EventLoopWindowTarget;
-use winit::keyboard::{KeyCode, PhysicalKey};
+use winit::keyboard::PhysicalKey;
 
 #[repr(C)]
 pub struct KeyboardEventData {
@@ -135,6 +132,17 @@ pub extern "C" fn request_redraw(state: *const EventLoopState) {
         if let Some(window_ptr) = (*state).window {
             let window = &*window_ptr; // Convert back to reference
             window.request_redraw();
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn get_window(state: *const EventLoopState) -> *const Window {
+    unsafe {
+        if let Some(window_ptr) = (*state).window {
+            window_ptr
+        } else {
+            std::ptr::null()
         }
     }
 }

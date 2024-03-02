@@ -8,3 +8,4 @@ target/
 .idea/
 /src/rust-core/glyphfx-winit/.idea
 src/rust-core/glyphfx-winit/.idea/glyphfx-winit.iml
+GlyphFX.Window/libwinit_wrapper.dylib
