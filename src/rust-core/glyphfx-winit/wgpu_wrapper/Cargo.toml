@@ -9,6 +9,7 @@ edition = "2021"
 wgpu = "0.19.3"
 env_logger = "0.11.2"
 futures = "0.3.30"
+bytemuck = { version = "1.14.3", features = [ "derive" ] }
 
 [lib]
 crate-type = ["cdylib", "rlib"]

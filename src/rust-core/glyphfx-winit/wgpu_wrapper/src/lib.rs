@@ -1,6 +1,20 @@
 use std::borrow::Cow;
-use wgpu::{Adapter, Device, Instance, PipelineLayout, Queue, RenderPipeline, ShaderModule, Surface, SurfaceConfiguration, SurfaceTargetUnsafe};
+use wgpu::{Adapter, Buffer, Device, Instance, PipelineLayout, Queue, RenderPipeline, ShaderModule, Surface, SurfaceConfiguration, SurfaceTargetUnsafe, VertexBufferLayout};
 use wgpu::rwh::{RawDisplayHandle, RawWindowHandle};
+use wgpu::util::DeviceExt;
+
+#[repr(C)]
+#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
+struct Vertex {
+    position: [f32; 3],
+    color: [f32; 3],
+}
+
+const VERTICES: &[Vertex] = &[
+    Vertex { position: [0.0, 0.5, 0.0], color: [1.0, 0.0, 0.0] },
+    Vertex { position: [-0.5, -0.5, 0.0], color: [0.0, 1.0, 0.0] },
+    Vertex { position: [0.5, -0.5, 0.0], color: [0.0, 0.0, 1.0] },
+];
 
 
 pub struct State {
@@ -15,6 +29,7 @@ pub struct State {
     pipeline_layout: PipelineLayout,
     render_pipeline: RenderPipeline,
     config: SurfaceConfiguration,
+    vertex_buffer: Buffer,
 }
 
 #[no_mangle]
@@ -80,13 +95,38 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
     let swapchain_capabilities = surface.get_capabilities(&adapter);
     let swapchain_format = swapchain_capabilities.formats[0];
 
+    let vertex_buffer = device.create_buffer_init(
+        &wgpu::util::BufferInitDescriptor {
+            label: Some("Vertex Buffer"),
+            contents: bytemuck::cast_slice(VERTICES),
+            usage: wgpu::BufferUsages::VERTEX,
+        }
+    );
+
+    let vertex_buffer_layout = VertexBufferLayout {
+        array_stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress,
+        step_mode: wgpu::VertexStepMode::Vertex,
+        attributes: &[
+            wgpu::VertexAttribute {
+                offset: 0,
+                shader_location: 0, //V Position
+                format: wgpu::VertexFormat::Float32x3,
+            },
+            wgpu::VertexAttribute {
+                offset: std::mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
+                shader_location: 1, //V Color
+                format: wgpu::VertexFormat::Float32x3,
+            }
+        ]
+    };
+
     let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
         label: None,
         layout: Some(&pipeline_layout),
         vertex: wgpu::VertexState {
             module: &shader,
             entry_point: "vs_main",
-            buffers: &[],
+            buffers: &[vertex_buffer_layout],
         },
         fragment: Some(wgpu::FragmentState {
             module: &shader,
@@ -104,6 +144,7 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
         .unwrap();
     surface.configure(&device, &config);
 
+
     let state = Box::new(State {
         width: 800,
         height: 600,
@@ -116,6 +157,7 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
         pipeline_layout,
         render_pipeline,
         config,
+        vertex_buffer,
     });
 
     Box::into_raw(state)
@@ -150,7 +192,8 @@ pub extern "C" fn render(state: &State) {
                 occlusion_query_set: None,
             });
         rpass.set_pipeline(&state.render_pipeline);
-        rpass.draw(0..3, 0..1);
+        rpass.set_vertex_buffer(0, state.vertex_buffer.slice(..));
+        rpass.draw(0..VERTICES.len() as u32, 0..1);
     }
 
     state.queue.submit(Some(encoder.finish()));
