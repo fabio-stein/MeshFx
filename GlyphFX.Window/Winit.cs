@@ -17,6 +17,12 @@ public class Winit
     
     [DllImport(Lib)]
     public static extern IntPtr get_window(IntPtr state);
+    
+    [DllImport(Lib)]
+    public static extern IntPtr get_display_handle(IntPtr state);
+    
+    [DllImport(Lib)]
+    public static extern IntPtr get_window_handle(IntPtr state);
 
     public delegate void KeyboardEventCallback(KeyboardEventData eventData);
     public delegate void InitStateCallback(IntPtr stateData);

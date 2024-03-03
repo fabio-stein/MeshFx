@@ -1,3 +1,4 @@
+use std::os::macos::raw::stat;
 use winit::{
     event::{Event, WindowEvent},
     event_loop::EventLoop,
@@ -57,13 +58,6 @@ pub extern "C" fn run_loop(keyboard_callback: KeyboardEventCallback, init_state:
     let event_loop = EventLoop::new().unwrap();
     let _window = Window::new(&event_loop).unwrap();
 
-    let mut state = EventLoopState {
-        target: None,
-        window: None,
-        display_handle: None,
-        window_handle: None,
-    };
-
     let _ = event_loop.run(move |event, target| {
         match event {
             Event::WindowEvent { event, .. } => {
@@ -110,6 +104,13 @@ pub extern "C" fn run_loop(keyboard_callback: KeyboardEventCallback, init_state:
                 };
             },
             Event::Resumed => {
+                let mut state = EventLoopState {
+                    target: None,
+                    window: None,
+                    display_handle: None,
+                    window_handle: None,
+                };
+
                 let target_ptr = target as *const _;
                 let window_ptr = &_window as *const _;
                 state.target = Some(target_ptr);
@@ -117,7 +118,9 @@ pub extern "C" fn run_loop(keyboard_callback: KeyboardEventCallback, init_state:
 
                 state.display_handle = Some(_window.display_handle().unwrap().as_raw());
                 state.window_handle = Some(_window.window_handle().unwrap().as_raw());
-                init_state(&state);
+
+                let state = Box::new(state);
+                init_state(Box::into_raw(state));
             },
             _ => {}
         }
@@ -146,10 +149,10 @@ pub extern "C" fn request_redraw(state: *const EventLoopState) {
 
 //get display handle
 #[no_mangle]
-pub extern "C" fn get_display_handle(state: *const EventLoopState) -> RawDisplayHandle {
+pub extern "C" fn get_display_handle(state: *const EventLoopState) -> *mut RawDisplayHandle {
     unsafe {
         if let Some(display_handle) = (*state).display_handle {
-            display_handle
+            Box::into_raw(Box::new(display_handle))
         } else {
             panic!("Display handle not found")
         }
@@ -158,10 +161,10 @@ pub extern "C" fn get_display_handle(state: *const EventLoopState) -> RawDisplay
 
 //get window handle
 #[no_mangle]
-pub extern "C" fn get_window_handle(state: *const EventLoopState) -> RawWindowHandle {
+pub extern "C" fn get_window_handle(state: *const EventLoopState) -> *mut RawWindowHandle {
     unsafe {
         if let Some(window_handle) = (*state).window_handle {
-            window_handle
+            Box::into_raw(Box::new(window_handle))
         } else {
             panic!("Window handle not found")
         }

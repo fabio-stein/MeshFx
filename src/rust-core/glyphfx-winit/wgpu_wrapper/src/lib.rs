@@ -1,12 +1,34 @@
 use std::borrow::Cow;
-use wgpu::SurfaceTargetUnsafe;
+use wgpu::{Adapter, Device, Instance, PipelineLayout, Queue, RenderPipeline, ShaderModule, Surface, SurfaceConfiguration, SurfaceTargetUnsafe};
 use wgpu::rwh::{RawDisplayHandle, RawWindowHandle};
 
-pub async fn run(display_handle: RawDisplayHandle, window_handle: RawWindowHandle) {
+
+pub struct State {
+    width: u32,
+    height: u32,
+    instance: Instance,
+    surface: Surface<'static>,
+    adapter: Adapter,
+    device: Device,
+    queue: Queue,
+    shader: ShaderModule,
+    pipeline_layout: PipelineLayout,
+    render_pipeline: RenderPipeline,
+    config: SurfaceConfiguration,
+}
+
+#[no_mangle]
+pub extern "C" fn init_state(display_handle: RawDisplayHandle, window_handle: RawWindowHandle) -> *mut State {
+    futures::executor::block_on(init_async(display_handle, window_handle))
+}
+
+async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHandle) -> *mut State {
+    env_logger::init();
+
     let width = 800;
     let height = 600;
 
-    let instance = wgpu::Instance::default();
+    let instance = Instance::default();
 
     let surface = unsafe {
         let raw_handle = SurfaceTargetUnsafe::RawHandle {
@@ -82,14 +104,33 @@ pub async fn run(display_handle: RawDisplayHandle, window_handle: RawWindowHandl
         .unwrap();
     surface.configure(&device, &config);
 
-    let frame = surface
+    let state = Box::new(State {
+        width: 800,
+        height: 600,
+        instance,
+        surface,
+        adapter,
+        device,
+        queue,
+        shader,
+        pipeline_layout,
+        render_pipeline,
+        config,
+    });
+
+    Box::into_raw(state)
+}
+
+#[no_mangle]
+pub extern "C" fn render(state: &State) {
+    let frame = state.surface
         .get_current_texture()
         .expect("Failed to acquire next swap chain texture");
     let view = frame
         .texture
         .create_view(&wgpu::TextureViewDescriptor::default());
     let mut encoder =
-        device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+        state.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
             label: None,
         });
     {
@@ -108,10 +149,10 @@ pub async fn run(display_handle: RawDisplayHandle, window_handle: RawWindowHandl
                 timestamp_writes: None,
                 occlusion_query_set: None,
             });
-        rpass.set_pipeline(&render_pipeline);
+        rpass.set_pipeline(&state.render_pipeline);
         rpass.draw(0..3, 0..1);
     }
 
-    queue.submit(Some(encoder.finish()));
+    state.queue.submit(Some(encoder.finish()));
     frame.present();
 }

@@ -1,9 +1,8 @@
-use futures::io::Window;
-use wgpu_wrapper::run;
 use winit_wrapper::{get_display_handle, get_window_handle, run_loop};
 
 
 static mut APP_STATE: *const winit_wrapper::EventLoopState = std::ptr::null();
+static mut WGPU_STATE: *const wgpu_wrapper::State = std::ptr::null();
 
 fn main() {
     run_loop(keyboard_event_callback, init_state_callback, cursor_moved_callback, mouse_input_callback, redraw_requested_callback, close_requested_callback);
@@ -15,6 +14,14 @@ extern "C" fn init_state_callback(state: *const winit_wrapper::EventLoopState) {
         println!("Event loop state");
         APP_STATE = state;
 
+        let window_handle = get_window_handle(APP_STATE);
+        let display_handle = get_display_handle(APP_STATE);
+
+        let display_handle_ref = unsafe { &*display_handle };
+        let window_handle_ref = unsafe { &*window_handle };
+
+        let state_ptr = wgpu_wrapper::init_state(*display_handle_ref, *window_handle_ref);
+        WGPU_STATE = state_ptr;
         //exit_target(state);
     }
 }
@@ -24,11 +31,8 @@ extern "C" fn mouse_input_callback(event_data: winit_wrapper::MouseInputEventDat
         let event_data = event_data;
         println!("Mouse input: {:?}", event_data);
 
-        let window_handle = get_window_handle(APP_STATE);
-        let display_handle = get_display_handle(APP_STATE);
-
-        let task = run(display_handle, window_handle);
-        futures::executor::block_on(task);
+        let state_ref = unsafe { &*WGPU_STATE };
+        wgpu_wrapper::render(state_ref);
     }
 }
 

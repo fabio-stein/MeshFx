@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\GlyphFX.WebGpu\GlyphFX.WebGpu.csproj" />
       <ProjectReference Include="..\GlyphFX.Window\GlyphFX.Window.csproj" />
     </ItemGroup>
 
