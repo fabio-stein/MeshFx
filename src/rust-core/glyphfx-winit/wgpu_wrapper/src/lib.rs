@@ -5,16 +5,10 @@ use wgpu::util::DeviceExt;
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
-struct Vertex {
-    position: [f32; 3],
-    color: [f32; 3],
+pub struct Vertex {
+    pub position: [f32; 3],
+    pub color: [f32; 3],
 }
-
-const VERTICES: &[Vertex] = &[
-    Vertex { position: [0.0, 0.5, 0.0], color: [1.0, 0.0, 0.0] },
-    Vertex { position: [-0.5, -0.5, 0.0], color: [0.0, 1.0, 0.0] },
-    Vertex { position: [0.5, -0.5, 0.0], color: [0.0, 0.0, 1.0] },
-];
 
 
 pub struct State {
@@ -30,6 +24,7 @@ pub struct State {
     render_pipeline: RenderPipeline,
     config: SurfaceConfiguration,
     vertex_buffer: Buffer,
+    index_buffer: Buffer,
 }
 
 #[no_mangle]
@@ -40,8 +35,9 @@ pub extern "C" fn init_state(display_handle: RawDisplayHandle, window_handle: Ra
 async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHandle) -> *mut State {
     env_logger::init();
 
-    let width = 800;
-    let height = 600;
+    let width = 1600;
+    let height = 1200;
+    let predefined_buffer_size = 1000;
 
     let instance = Instance::default();
 
@@ -95,11 +91,12 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
     let swapchain_capabilities = surface.get_capabilities(&adapter);
     let swapchain_format = swapchain_capabilities.formats[0];
 
-    let vertex_buffer = device.create_buffer_init(
-        &wgpu::util::BufferInitDescriptor {
-            label: Some("Vertex Buffer"),
-            contents: bytemuck::cast_slice(VERTICES),
-            usage: wgpu::BufferUsages::VERTEX,
+    let vertex_buffer = device.create_buffer(
+        &wgpu::BufferDescriptor {
+            label: None,
+            size: (predefined_buffer_size * std::mem::size_of::<Vertex>()) as wgpu::BufferAddress,
+            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
         }
     );
 
@@ -119,6 +116,15 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
             }
         ]
     };
+
+    let index_buffer = device.create_buffer(
+        &wgpu::BufferDescriptor {
+            label: None,
+            size: (predefined_buffer_size * std::mem::size_of::<u16>()) as wgpu::BufferAddress,
+            usage: wgpu::BufferUsages::INDEX | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        }
+    );
 
     let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
         label: None,
@@ -158,13 +164,14 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
         render_pipeline,
         config,
         vertex_buffer,
+        index_buffer,
     });
 
     Box::into_raw(state)
 }
 
 #[no_mangle]
-pub extern "C" fn render(state: &State) {
+pub extern "C" fn render(state: &State, vertices: &[Vertex], indices: &[u16]) {
     let frame = state.surface
         .get_current_texture()
         .expect("Failed to acquire next swap chain texture");
@@ -191,9 +198,14 @@ pub extern "C" fn render(state: &State) {
                 timestamp_writes: None,
                 occlusion_query_set: None,
             });
+
+        state.queue.write_buffer(&state.vertex_buffer, 0, bytemuck::cast_slice(vertices));
+        state.queue.write_buffer(&state.index_buffer, 0, bytemuck::cast_slice(indices));
+
         rpass.set_pipeline(&state.render_pipeline);
         rpass.set_vertex_buffer(0, state.vertex_buffer.slice(..));
-        rpass.draw(0..VERTICES.len() as u32, 0..1);
+        rpass.set_index_buffer(state.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
+        rpass.draw_indexed(0..indices.len() as u32, 0, 0..1);
     }
 
     state.queue.submit(Some(encoder.finish()));

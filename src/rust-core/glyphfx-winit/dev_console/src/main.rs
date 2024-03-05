@@ -1,4 +1,4 @@
-use winit_wrapper::{get_display_handle, get_window_handle, run_loop};
+use winit_wrapper::{CursorMovedEventData, get_display_handle, get_window_handle, run_loop};
 
 
 static mut APP_STATE: *const winit_wrapper::EventLoopState = std::ptr::null();
@@ -26,13 +26,44 @@ extern "C" fn init_state_callback(state: *const winit_wrapper::EventLoopState) {
     }
 }
 
+static mut VERTICES: &[wgpu_wrapper::Vertex] = &[
+    wgpu_wrapper::Vertex {
+        position: [0.0, 0.0, 0.0],
+        color: [1.0, 0.0, 0.0],
+    },
+    wgpu_wrapper::Vertex {
+        position: [0.0, 500.0, 0.0],
+        color: [0.0, 1.0, 0.0],
+    },
+    wgpu_wrapper::Vertex {
+        position: [500.0, 500.0, 0.0],
+        color: [0.0, 0.0, 1.0],
+    },
+    wgpu_wrapper::Vertex {
+        position: [500.0, 0.0, 0.0],
+        color: [1.0, 1.0, 0.0],
+    },
+];
+
+static mut INDICES: &[u16] = &[
+    0, 1, 2,
+    0, 2, 3,
+];
+
+static mut CURSOR:CursorMovedEventData = CursorMovedEventData { x: 0.0, y: 0.0 };
+
 extern "C" fn mouse_input_callback(event_data: winit_wrapper::MouseInputEventData) {
     unsafe {
         let event_data = event_data;
         println!("Mouse input: {:?}", event_data);
 
+        if event_data.is_down == 0{
+            return;
+        }
+
         let state_ref = unsafe { &*WGPU_STATE };
-        wgpu_wrapper::render(state_ref);
+
+        wgpu_wrapper::render(state_ref, &VERTICES, &INDICES);
     }
 }
 
@@ -40,6 +71,7 @@ extern "C" fn cursor_moved_callback(event_data: winit_wrapper::CursorMovedEventD
     unsafe {
         //let event_data = event_data;
         //println!("Cursor moved: ({}, {})", event_data.x, event_data.y);
+        CURSOR = event_data;
     }
 }
 
