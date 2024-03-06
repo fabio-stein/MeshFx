@@ -1,4 +1,5 @@
 use std::borrow::Cow;
+use std::ffi::c_void;
 use wgpu::{Adapter, Buffer, Device, Instance, PipelineLayout, Queue, RenderPipeline, ShaderModule, Surface, SurfaceConfiguration, SurfaceTargetUnsafe, VertexBufferLayout};
 use wgpu::rwh::{RawDisplayHandle, RawWindowHandle};
 use wgpu::util::DeviceExt;
@@ -171,7 +172,11 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
 }
 
 #[no_mangle]
-pub extern "C" fn render(state: &State, vertices: &[Vertex], indices: &[u16]) {
+pub extern "C" fn render(state: &State, vertex_ptr: *mut c_void, indices: &[u16]) {
+    //get as: vertices: &[Vertex], indices: &[u16])
+    let vertices = unsafe { std::slice::from_raw_parts(vertex_ptr as *const Vertex, 4) };
+    let indices = unsafe { std::slice::from_raw_parts(indices.as_ptr(), 6) };
+
     let frame = state.surface
         .get_current_texture()
         .expect("Failed to acquire next swap chain texture");
