@@ -36,13 +36,13 @@ public class DemoApp : EventApp
         
         Vertex[] vertices =
         [
-            new Vertex { position = new Vec3 { x = left.x, y = left.y, z = 0.0f }, color = new ColorRGB { r = 0.0f, g = 1.0f, b = 0.0f } },
-            new Vertex { position = new Vec3 { x = left.x, y = right.y, z = 0.0f }, color = new ColorRGB { r = 1.0f, g = 0.0f, b = 1.0f } },
-            new Vertex { position = new Vec3 { x = right.x, y = right.y, z = 0.0f }, color = new ColorRGB { r = 0.0f, g = 0.0f, b = 1.0f } },
-            new Vertex { position = new Vec3 { x = right.x, y = left.y, z = 0.0f }, color = new ColorRGB { r = 1.0f, g = 1.0f, b = 0.0f } }
+            new Vertex { position = new Vec3(left.x, left.y, 0), textureCoords = new Vec2(0, 0) },
+            new Vertex { position = new Vec3(right.x, left.y, 0), textureCoords = new Vec2(1, 0) },
+            new Vertex { position = new Vec3(right.x, right.y, 0), textureCoords = new Vec2(1, 1) },
+            new Vertex { position = new Vec3(left.x, right.y, 0), textureCoords = new Vec2(0, 1) }
         ];
         
-       SetVertices(vertices);
+        SetVertices(vertices);
         
         var indices = new ushort[] { 0, 1, 2, 0, 2, 3};
         

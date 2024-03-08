@@ -1,6 +1,8 @@
+mod texture;
+
 use std::borrow::Cow;
 use std::ffi::c_void;
-use wgpu::{Adapter, Buffer, Device, Instance, PipelineLayout, Queue, RenderPipeline, ShaderModule, Surface, SurfaceConfiguration, SurfaceTargetUnsafe, VertexBufferLayout};
+use wgpu::{Adapter, BindGroup, Buffer, Device, Instance, PipelineLayout, Queue, RenderPipeline, ShaderModule, Surface, SurfaceConfiguration, SurfaceTargetUnsafe, VertexBufferLayout};
 use wgpu::rwh::{RawDisplayHandle, RawWindowHandle};
 use wgpu::util::DeviceExt;
 
@@ -8,7 +10,7 @@ use wgpu::util::DeviceExt;
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct Vertex {
     pub position: [f32; 3],
-    pub color: [f32; 3],
+    pub tex_coords: [f32; 2],
 }
 
 
@@ -26,6 +28,8 @@ pub struct State {
     config: SurfaceConfiguration,
     vertex_buffer: Buffer,
     index_buffer: Buffer,
+    diffuse_bind_group: BindGroup,
+    diffuse_texture: texture::Texture,
 }
 
 #[no_mangle]
@@ -83,12 +87,6 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
         source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(include_str!("shader.wgsl"))),
     });
 
-    let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-        label: None,
-        bind_group_layouts: &[],
-        push_constant_ranges: &[],
-    });
-
     let swapchain_capabilities = surface.get_capabilities(&adapter);
     let swapchain_format = swapchain_capabilities.formats[0];
 
@@ -112,8 +110,8 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
             },
             wgpu::VertexAttribute {
                 offset: std::mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
-                shader_location: 1, //V Color
-                format: wgpu::VertexFormat::Float32x3,
+                shader_location: 1, //V Tex Coords
+                format: wgpu::VertexFormat::Float32x2,
             }
         ]
     };
@@ -126,6 +124,65 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
             mapped_at_creation: false,
         }
     );
+
+
+
+    let mut config = surface
+        .get_default_config(&adapter, width, height)
+        .unwrap();
+    surface.configure(&device, &config);
+
+    let diffuse_bytes = include_bytes!("texture.jpg");
+    let diffuse_texture = texture::Texture::from_bytes(&device, &queue, diffuse_bytes, "texture.jpg").unwrap();
+
+    let texture_bind_group_layout =
+        device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            entries: &[
+                wgpu::BindGroupLayoutEntry {
+                    binding: 0,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    ty: wgpu::BindingType::Texture {
+                        multisampled: false,
+                        view_dimension: wgpu::TextureViewDimension::D2,
+                        sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                    },
+                    count: None,
+                },
+                wgpu::BindGroupLayoutEntry {
+                    binding: 1,
+                    visibility: wgpu::ShaderStages::FRAGMENT,
+                    // This should match the filterable field of the
+                    // corresponding Texture entry above.
+                    ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
+                    count: None,
+                },
+            ],
+            label: Some("texture_bind_group_layout"),
+        });
+
+
+    let diffuse_bind_group = device.create_bind_group(
+        &wgpu::BindGroupDescriptor {
+            layout: &texture_bind_group_layout,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
+                }
+            ],
+            label: Some("diffuse_bind_group"),
+        }
+    );
+
+    let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+        label: None,
+        bind_group_layouts: &[&texture_bind_group_layout],
+        push_constant_ranges: &[],
+    });
 
     let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
         label: None,
@@ -146,12 +203,6 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
         multiview: None,
     });
 
-    let mut config = surface
-        .get_default_config(&adapter, width, height)
-        .unwrap();
-    surface.configure(&device, &config);
-
-
     let state = Box::new(State {
         width: 800,
         height: 600,
@@ -166,6 +217,8 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
         config,
         vertex_buffer,
         index_buffer,
+        diffuse_bind_group,
+        diffuse_texture
     });
 
     Box::into_raw(state)
@@ -208,6 +261,7 @@ pub extern "C" fn render(state: &State, vertex_ptr: *mut c_void, indices: &[u16]
         state.queue.write_buffer(&state.index_buffer, 0, bytemuck::cast_slice(indices));
 
         rpass.set_pipeline(&state.render_pipeline);
+        rpass.set_bind_group(0, &state.diffuse_bind_group, &[]);
         rpass.set_vertex_buffer(0, state.vertex_buffer.slice(..));
         rpass.set_index_buffer(state.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
         rpass.draw_indexed(0..indices.len() as u32, 0, 0..1);
