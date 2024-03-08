@@ -31,8 +31,8 @@ public class DemoApp : EventApp
 
     private void UpdateVertex()
     {
-        var left = this.left ?? new Vec2(0, 0);
-        var right = this.right ?? new Vec2(0, 0);
+        var left = new Vec2(-0.5f, -0.5f);
+        var right = new Vec2(0.5f, 0.5f);
         
         Vertex[] vertices =
         [
