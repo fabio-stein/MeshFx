@@ -75,7 +75,7 @@ public class DemoApp : EventApp
         SetIndices(indices);
         
         var obj1 = Matrix4x4.CreateTranslation(-0.6f, 0, 0);
-        var obj2 = Matrix4x4.CreateTranslation(speed, 0, -0.5f);
+        var obj2 = Matrix4x4.CreateTranslation(speed, -0.2f, -0.5f);
         
         var instances = new Matrix4x4[] { obj1, obj2 };
         SetInstanceMatrix(instances);

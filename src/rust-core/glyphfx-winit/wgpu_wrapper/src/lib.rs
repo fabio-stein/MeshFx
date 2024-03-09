@@ -6,6 +6,7 @@ use std::mem;
 use wgpu::{Adapter, BindGroup, Buffer, Device, Instance, PipelineLayout, Queue, RenderPipeline, ShaderModule, Surface, SurfaceConfiguration, SurfaceTargetUnsafe, VertexBufferLayout};
 use wgpu::rwh::{RawDisplayHandle, RawWindowHandle};
 use wgpu::util::DeviceExt;
+use crate::texture::Texture;
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
@@ -45,6 +46,7 @@ pub struct State {
     camera_buffer: Buffer,
     camera_bind_group: BindGroup,
     instance_buffer: Buffer,
+    depth_texture: Texture,
 }
 
 #[no_mangle]
@@ -235,6 +237,8 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
         }
     );
 
+    let depth_texture = texture::Texture::create_depth_texture(&device, &config, "depth_texture");
+
     let camera_buffer = device.create_buffer(
         &wgpu::BufferDescriptor {
             label: Some("Camera Buffer"),
@@ -298,7 +302,13 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
             //topology: wgpu::PrimitiveTopology::LineStrip,
             ..Default::default()
         },
-        depth_stencil: None,
+        depth_stencil: Some(wgpu::DepthStencilState {
+            format: texture::Texture::DEPTH_FORMAT,
+            depth_write_enabled: true,
+            depth_compare: wgpu::CompareFunction::Less,
+            stencil: wgpu::StencilState::default(),
+            bias: wgpu::DepthBiasState::default(),
+        }),
         multisample: wgpu::MultisampleState::default(),
         multiview: None,
     });
@@ -321,7 +331,8 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
         diffuse_texture,
         camera_buffer,
         camera_bind_group,
-        instance_buffer
+        instance_buffer,
+        depth_texture,
     });
 
     Box::into_raw(state)
@@ -357,7 +368,14 @@ pub extern "C" fn render(state: &mut State, vertex_ptr: *mut c_void, indices: *c
                         store: wgpu::StoreOp::Store,
                     },
                 })],
-                depth_stencil_attachment: None,
+                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                    view: &state.depth_texture.view,
+                    depth_ops: Some(wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(1.0),
+                        store: wgpu::StoreOp::Store,
+                    }),
+                    stencil_ops: None,
+                }),
                 timestamp_writes: None,
                 occlusion_query_set: None,
             });
