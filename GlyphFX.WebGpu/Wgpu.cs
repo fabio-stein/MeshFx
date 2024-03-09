@@ -10,5 +10,5 @@ public class Wgpu
     public static extern IntPtr init_state(IntPtr displayHandle, IntPtr windowHandle);
     
     [DllImport(Lib)]
-    public static extern void render(IntPtr state, IntPtr vertexBuffer, IntPtr indexBuffer, IntPtr cameraUniformBuffer);
+    public static extern void render(IntPtr state, IntPtr vertexBuffer, IntPtr indexBuffer, IntPtr cameraUniformBuffer, IntPtr instanceSingleMatrixBuffer);
 }

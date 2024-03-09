@@ -2,6 +2,7 @@ mod texture;
 
 use std::borrow::Cow;
 use std::ffi::c_void;
+use std::mem;
 use wgpu::{Adapter, BindGroup, Buffer, Device, Instance, PipelineLayout, Queue, RenderPipeline, ShaderModule, Surface, SurfaceConfiguration, SurfaceTargetUnsafe, VertexBufferLayout};
 use wgpu::rwh::{RawDisplayHandle, RawWindowHandle};
 use wgpu::util::DeviceExt;
@@ -13,39 +14,13 @@ pub struct Vertex {
     pub tex_coords: [f32; 2],
 }
 
-struct Camera {
-    eye: cgmath::Point3<f32>,
-    target: cgmath::Point3<f32>,
-    up: cgmath::Vector3<f32>,
-    aspect: f32,
-    fovy: f32,
-    znear: f32,
-    zfar: f32,
-}
-
-impl Camera {
-    fn build_view_projection_matrix(&self) -> cgmath::Matrix4<f32> {
-        // 1.
-        let view = cgmath::Matrix4::look_at_rh(self.eye, self.target, self.up);
-        // 2.
-        let proj = cgmath::perspective(cgmath::Deg(self.fovy), self.aspect, self.znear, self.zfar);
-
-        // 3.
-        return OPENGL_TO_WGPU_MATRIX * proj * view;
-    }
-}
-
-#[rustfmt::skip]
-pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
-    1.0, 0.0, 0.0, 0.0,
-    0.0, 1.0, 0.0, 0.0,
-    0.0, 0.0, 0.5, 0.5,
-    0.0, 0.0, 0.0, 1.0,
-);
-
-// We need this for Rust to store our data correctly for the shaders
 #[repr(C)]
-// This is so we can store this in a buffer
+#[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
+struct InstanceRaw {
+    model_matrix: [[f32; 4]; 4],
+}
+
+#[repr(C)]
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 struct CameraUniform {
     view_proj: [[f32; 4]; 4],
@@ -69,6 +44,7 @@ pub struct State {
     diffuse_texture: texture::Texture,
     camera_buffer: Buffer,
     camera_bind_group: BindGroup,
+    instance_buffer: Buffer,
 }
 
 #[no_mangle]
@@ -164,6 +140,48 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
         }
     );
 
+    let instance_buffer = device.create_buffer(
+        &wgpu::BufferDescriptor {
+            label: None,
+            size: (predefined_buffer_size * std::mem::size_of::<InstanceRaw>()) as wgpu::BufferAddress,
+            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        }
+    );
+
+    let instance_vertex_buffer_layout = VertexBufferLayout {
+        array_stride: mem::size_of::<InstanceRaw>() as wgpu::BufferAddress,
+        // We need to switch from using a step mode of Vertex to Instance
+        // This means that our shaders will only change to use the next
+        // instance when the shader starts processing a new instance
+        step_mode: wgpu::VertexStepMode::Instance,
+        attributes: &[
+            // A mat4 takes up 4 vertex slots as it is technically 4 vec4s. We need to define a slot
+            // for each vec4. We'll have to reassemble the mat4 in the shader.
+            wgpu::VertexAttribute {
+                offset: 0,
+                // While our vertex shader only uses locations 0, and 1 now, in later tutorials, we'll
+                // be using 2, 3, and 4, for Vertex. We'll start at slot 5, not conflict with them later
+                shader_location: 5,
+                format: wgpu::VertexFormat::Float32x4,
+            },
+            wgpu::VertexAttribute {
+                offset: mem::size_of::<[f32; 4]>() as wgpu::BufferAddress,
+                shader_location: 6,
+                format: wgpu::VertexFormat::Float32x4,
+            },
+            wgpu::VertexAttribute {
+                offset: mem::size_of::<[f32; 8]>() as wgpu::BufferAddress,
+                shader_location: 7,
+                format: wgpu::VertexFormat::Float32x4,
+            },
+            wgpu::VertexAttribute {
+                offset: mem::size_of::<[f32; 12]>() as wgpu::BufferAddress,
+                shader_location: 8,
+                format: wgpu::VertexFormat::Float32x4,
+            },
+        ],
+    };
 
 
     let mut config = surface
@@ -268,7 +286,7 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
         vertex: wgpu::VertexState {
             module: &shader,
             entry_point: "vs_main",
-            buffers: &[vertex_buffer_layout],
+            buffers: &[vertex_buffer_layout, instance_vertex_buffer_layout],
         },
         fragment: Some(wgpu::FragmentState {
             module: &shader,
@@ -286,8 +304,8 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
     });
 
     let state = Box::new(State {
-        width: 800,
-        height: 600,
+        width,
+        height,
         instance,
         surface,
         adapter,
@@ -302,18 +320,20 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
         diffuse_bind_group,
         diffuse_texture,
         camera_buffer,
-        camera_bind_group
+        camera_bind_group,
+        instance_buffer
     });
 
     Box::into_raw(state)
 }
 
 #[no_mangle]
-pub extern "C" fn render(state: &mut State, vertex_ptr: *mut c_void, indices: *const u16, camera_uniform: *const f32) {
+pub extern "C" fn render(state: &mut State, vertex_ptr: *mut c_void, indices: *const u16, camera_uniform: *const f32, instances_single_matrix: *const f32){
     //get as: vertices: &[Vertex], indices: &[u16])
     let vertices = unsafe { std::slice::from_raw_parts(vertex_ptr as *const Vertex, 8) };
     let indices = unsafe { std::slice::from_raw_parts(indices, 36) };
     let camera_uniform = unsafe { std::slice::from_raw_parts(camera_uniform, 16) };
+    let instance_single_matrix = unsafe { std::slice::from_raw_parts(instances_single_matrix, 32) };
 
     let frame = state.surface
         .get_current_texture()
@@ -343,6 +363,7 @@ pub extern "C" fn render(state: &mut State, vertex_ptr: *mut c_void, indices: *c
             });
 
         state.queue.write_buffer(&state.vertex_buffer, 0, bytemuck::cast_slice(vertices));
+        state.queue.write_buffer(&state.instance_buffer, 0, bytemuck::cast_slice(instance_single_matrix));
         state.queue.write_buffer(&state.index_buffer, 0, bytemuck::cast_slice(indices));
 
         state.queue.write_buffer(&state.camera_buffer, 0, bytemuck::cast_slice(camera_uniform));
@@ -351,8 +372,10 @@ pub extern "C" fn render(state: &mut State, vertex_ptr: *mut c_void, indices: *c
         rpass.set_bind_group(0, &state.diffuse_bind_group, &[]);
         rpass.set_bind_group(1, &state.camera_bind_group, &[]);
         rpass.set_vertex_buffer(0, state.vertex_buffer.slice(..));
+        rpass.set_vertex_buffer(1, state.instance_buffer.slice(..));
         rpass.set_index_buffer(state.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
-        rpass.draw_indexed(0..indices.len() as u32, 0, 0..1);
+
+        rpass.draw_indexed(0..indices.len() as u32, 0, 0..2);
     }
 
     state.queue.submit(Some(encoder.finish()));
