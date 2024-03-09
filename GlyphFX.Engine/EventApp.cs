@@ -12,8 +12,8 @@ public abstract class EventApp
     IntPtr wgpuState = IntPtr.Zero;
     
     InputHandler inputHandler = new();
-    SharedBuffer<Vertex> vertexBuffer = new(4);
-    SharedBuffer<ushort> indexBuffer = new(6);
+    SharedBuffer<Vertex> vertexBuffer = new(8);
+    SharedBuffer<ushort> indexBuffer = new(36);
     SharedBuffer<Matrix4x4> cameraBuffer = new(1);
     
     public InputStatus Input => inputHandler.InputStatus;
@@ -41,6 +41,7 @@ public abstract class EventApp
         
         Start();
         Render();
+        Winit.request_redraw(winitState);
     }
     
     private void RedrawRequested()

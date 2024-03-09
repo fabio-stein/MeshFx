@@ -275,7 +275,11 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
             entry_point: "fs_main",
             targets: &[Some(swapchain_format.into())],
         }),
-        primitive: wgpu::PrimitiveState::default(),
+        primitive: wgpu::PrimitiveState{
+            cull_mode: Some(wgpu::Face::Back),
+            //topology: wgpu::PrimitiveTopology::LineStrip,
+            ..Default::default()
+        },
         depth_stencil: None,
         multisample: wgpu::MultisampleState::default(),
         multiview: None,
@@ -307,8 +311,8 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
 #[no_mangle]
 pub extern "C" fn render(state: &mut State, vertex_ptr: *mut c_void, indices: *const u16, camera_uniform: *const f32) {
     //get as: vertices: &[Vertex], indices: &[u16])
-    let vertices = unsafe { std::slice::from_raw_parts(vertex_ptr as *const Vertex, 4) };
-    let indices = unsafe { std::slice::from_raw_parts(indices, 6) };
+    let vertices = unsafe { std::slice::from_raw_parts(vertex_ptr as *const Vertex, 8) };
+    let indices = unsafe { std::slice::from_raw_parts(indices, 36) };
     let camera_uniform = unsafe { std::slice::from_raw_parts(camera_uniform, 16) };
 
     let frame = state.surface

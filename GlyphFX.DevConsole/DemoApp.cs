@@ -12,6 +12,9 @@ public class DemoApp : EventApp
     private float aspect = 1f;
     private float znear = 0.1f;
     private float zfar = 100.0f;
+
+    private float speed = 0.01f;
+    private float rotationAngle = 0.0f;
     
     public override void Start()
     {
@@ -21,37 +24,62 @@ public class DemoApp : EventApp
     {
         if (Input.IsButtonDown)
         {
-            UpdateVertex();
-            eye.X += ((Input.Button == 0) ? 1 : -1) * 0.01f;
-
-            var degrees = 60.0f;
-            float fovRadians = degrees * (float)Math.PI / 180.0f;
-            
-            Matrix4x4 view = Matrix4x4.CreateLookAt(eye, target, up);
-            Matrix4x4 proj = Matrix4x4.CreatePerspectiveFieldOfView(fovRadians, aspect, znear, zfar);
-            
-            Matrix4x4 viewProjection = view * proj;
-            
-            SetCamera(viewProjection);
+            speed += (Input.Button == 0) ? 0.001f : -0.001f;
         }
+        
+        UpdateVertex();
+
+        rotationAngle += speed;
+        float radius = (eye - target).Length();
+        float theta = rotationAngle;
+        float phi = 0.0f;
+        
+        float x = radius * MathF.Sin(theta) * MathF.Cos(phi);
+        float z = radius * MathF.Cos(theta) * MathF.Cos(phi);
+        float y = radius * MathF.Sin(phi);
+
+        eye = new Vector3(x, y, z) + target;
+
+        var degrees = 60.0f;
+        float fovRadians = degrees * (float)Math.PI / 180.0f;
+            
+        Matrix4x4 view = Matrix4x4.CreateLookAt(eye, target, up);
+        Matrix4x4 proj = Matrix4x4.CreatePerspectiveFieldOfView(fovRadians, aspect, znear, zfar);
+            
+        Matrix4x4 viewProjection = view * proj;
+            
+        SetCamera(viewProjection);
     }
 
     private void UpdateVertex()
     {
-        var left = new Vec2(-0.5f, -0.5f);
-        var right = new Vec2(0.5f, 0.5f);
+        var left = new Vec3(-0.5f, -0.5f, -0.5f);
+        var right = new Vec3(0.5f, 0.5f, 0.5f);
         
         Vertex[] vertices =
         [
-            new Vertex { position = new Vec3(left.x, left.y, 0.0f), textureCoords = new Vec2(0, 0) },
-            new Vertex { position = new Vec3(right.x, left.y, 0.0f), textureCoords = new Vec2(1, 0) },
-            new Vertex { position = new Vec3(right.x, right.y, 0.0f), textureCoords = new Vec2(1, 1) },
-            new Vertex { position = new Vec3(left.x, right.y, 0.0f), textureCoords = new Vec2(0, 1) }
+            new Vertex { position = new Vec3(left.x, left.y, right.z), textureCoords = new Vec2(0, 1) },
+            new Vertex { position = new Vec3(right.x, left.y, right.z), textureCoords = new Vec2(1, 1) },
+            new Vertex { position = new Vec3(right.x, right.y, right.z), textureCoords = new Vec2(1, 0) },
+            new Vertex { position = new Vec3(left.x, right.y, right.z), textureCoords = new Vec2(0, 0) },
+            
+            new Vertex { position = new Vec3(left.x, left.y, left.z), textureCoords = new Vec2(0, 1) },
+            new Vertex { position = new Vec3(right.x, left.y, left.z), textureCoords = new Vec2(1, 1) },
+            new Vertex { position = new Vec3(right.x, right.y, left.z), textureCoords = new Vec2(1, 0) },
+            new Vertex { position = new Vec3(left.x, right.y, left.z), textureCoords = new Vec2(0, 0) }
         ];
         
         SetVertices(vertices);
         
-        var indices = new ushort[] { 0, 1, 2, 0, 2, 3};
+        var indices = new ushort[]
+        {
+            0, 1, 2, 0,2,3,
+            4,0,3,4,3,7,
+            1,5,6,1,6,2,
+            2,6,7,2,7,3,
+            4,5,1,4,1,0,
+            5,4,7,5,7,6,
+        };
         
         SetIndices(indices);
     }
