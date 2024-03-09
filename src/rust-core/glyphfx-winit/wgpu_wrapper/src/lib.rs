@@ -2,7 +2,6 @@ mod texture;
 
 use std::borrow::Cow;
 use std::ffi::c_void;
-use std::os::macos::raw::stat;
 use wgpu::{Adapter, BindGroup, Buffer, Device, Instance, PipelineLayout, Queue, RenderPipeline, ShaderModule, Surface, SurfaceConfiguration, SurfaceTargetUnsafe, VertexBufferLayout};
 use wgpu::rwh::{RawDisplayHandle, RawWindowHandle};
 use wgpu::util::DeviceExt;
@@ -49,24 +48,8 @@ pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
 // This is so we can store this in a buffer
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 struct CameraUniform {
-    // We can't use cgmath with bytemuck directly, so we'll have
-    // to convert the Matrix4 into a 4x4 f32 array
     view_proj: [[f32; 4]; 4],
 }
-
-impl CameraUniform {
-    fn new() -> Self {
-        use cgmath::SquareMatrix;
-        Self {
-            view_proj: cgmath::Matrix4::identity().into(),
-        }
-    }
-
-    fn update_view_proj(&mut self, camera: &Camera) {
-        self.view_proj = camera.build_view_projection_matrix().into();
-    }
-}
-
 
 pub struct State {
     width: u32,
@@ -84,8 +67,6 @@ pub struct State {
     index_buffer: Buffer,
     diffuse_bind_group: BindGroup,
     diffuse_texture: texture::Texture,
-    camera: Camera,
-    camera_uniform: CameraUniform,
     camera_buffer: Buffer,
     camera_bind_group: BindGroup,
 }
@@ -236,28 +217,12 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
         }
     );
 
-    let camera = Camera {
-        // position the camera 1 unit up and 2 units back
-        // +z is out of the screen
-        eye: (0.0, 1.0, 2.0).into(),
-        // have it look at the origin
-        target: (0.0, 0.0, 0.0).into(),
-        // which way is "up"
-        up: cgmath::Vector3::unit_y(),
-        aspect: config.width as f32 / config.height as f32,
-        fovy: 45.0,
-        znear: 0.1,
-        zfar: 100.0,
-    };
-
-    let mut camera_uniform = CameraUniform::new();
-    camera_uniform.update_view_proj(&camera);
-
-    let camera_buffer = device.create_buffer_init(
-        &wgpu::util::BufferInitDescriptor {
+    let camera_buffer = device.create_buffer(
+        &wgpu::BufferDescriptor {
             label: Some("Camera Buffer"),
-            contents: bytemuck::cast_slice(&[camera_uniform]),
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+            size: std::mem::size_of::<CameraUniform>() as wgpu::BufferAddress,
         }
     );
 
@@ -332,8 +297,6 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
         index_buffer,
         diffuse_bind_group,
         diffuse_texture,
-        camera,
-        camera_uniform,
         camera_buffer,
         camera_bind_group
     });
@@ -341,32 +304,12 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
     Box::into_raw(state)
 }
 
-fn update_camera(state: &mut State) {
-    use cgmath::InnerSpace;
-    let forward = state.camera.target - state.camera.eye;
-    let forward_norm = forward.normalize();
-    let forward_mag = forward.magnitude();
-
-    let speed:f32 = 0.05;
-
-    let right = forward_norm.cross(state.camera.up);
-
-    if true {
-        // Rescale the distance between the target and the eye so
-        // that it doesn't change. The eye, therefore, still
-        // lies on the circle made by the target and eye.
-        state.camera.eye = state.camera.target - (forward + right * speed).normalize() * forward_mag;
-    }
-}
-
 #[no_mangle]
-pub extern "C" fn render(state: &mut State, vertex_ptr: *mut c_void, indices: &[u16]) {
-
-    update_camera(state);
-
+pub extern "C" fn render(state: &mut State, vertex_ptr: *mut c_void, indices: *const u16, camera_uniform: *const f32) {
     //get as: vertices: &[Vertex], indices: &[u16])
     let vertices = unsafe { std::slice::from_raw_parts(vertex_ptr as *const Vertex, 4) };
-    let indices = unsafe { std::slice::from_raw_parts(indices.as_ptr(), 6) };
+    let indices = unsafe { std::slice::from_raw_parts(indices, 6) };
+    let camera_uniform = unsafe { std::slice::from_raw_parts(camera_uniform, 16) };
 
     let frame = state.surface
         .get_current_texture()
@@ -398,8 +341,7 @@ pub extern "C" fn render(state: &mut State, vertex_ptr: *mut c_void, indices: &[
         state.queue.write_buffer(&state.vertex_buffer, 0, bytemuck::cast_slice(vertices));
         state.queue.write_buffer(&state.index_buffer, 0, bytemuck::cast_slice(indices));
 
-        state.camera_uniform.update_view_proj(&state.camera);
-        state.queue.write_buffer(&state.camera_buffer, 0, bytemuck::cast_slice(&[state.camera_uniform]));
+        state.queue.write_buffer(&state.camera_buffer, 0, bytemuck::cast_slice(camera_uniform));
 
         rpass.set_pipeline(&state.render_pipeline);
         rpass.set_bind_group(0, &state.diffuse_bind_group, &[]);

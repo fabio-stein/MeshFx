@@ -10,7 +10,7 @@ public struct Vertex {
 }
 
 [StructLayout(LayoutKind.Sequential)]
-public struct Vec3(float x, float y, int z)
+public struct Vec3(float x, float y, float z)
 {
     public float x = x;
     public float y = y;

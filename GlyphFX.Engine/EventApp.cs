@@ -1,3 +1,4 @@
+using System.Numerics;
 using GlyphFX.WebGpu;
 using GlyphFX.Window;
 
@@ -13,6 +14,7 @@ public abstract class EventApp
     InputHandler inputHandler = new();
     SharedBuffer<Vertex> vertexBuffer = new(4);
     SharedBuffer<ushort> indexBuffer = new(6);
+    SharedBuffer<Matrix4x4> cameraBuffer = new(1);
     
     public InputStatus Input => inputHandler.InputStatus;
     
@@ -38,6 +40,7 @@ public abstract class EventApp
         Console.WriteLine("EventApp initialized");
         
         Start();
+        Render();
     }
     
     private void RedrawRequested()
@@ -63,10 +66,15 @@ public abstract class EventApp
     {
         indexBuffer.SetData(indices);
     }
+    
+    public void SetCamera(Matrix4x4 camera)
+    {
+        cameraBuffer.SetData(new Matrix4x4[] { camera });
+    }
 
     public void Render()
     {
-        Wgpu.render(wgpuState, vertexBuffer.Buffer, indexBuffer.Buffer);
+        Wgpu.render(wgpuState, vertexBuffer.Buffer, indexBuffer.Buffer, cameraBuffer.Buffer);
     }
     
     public abstract void Start();

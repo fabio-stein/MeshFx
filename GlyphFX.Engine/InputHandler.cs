@@ -18,6 +18,7 @@ internal class InputHandler
     public void MouseInput(Winit.MouseInputEventData data)
     {
         InputStatus.IsButtonDown = data.IsDown == 1;
+        InputStatus.Button = data.Button;
         Console.WriteLine($"Mouse input: {data.IsDown}");
     }
 }
@@ -26,4 +27,5 @@ public class InputStatus
 {
     public bool IsButtonDown { get; internal set; }
     public Vec2 MousePosition { get; internal set; }
+    public int Button { get; internal set; }
 }

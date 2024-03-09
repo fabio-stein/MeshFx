@@ -22,13 +22,6 @@ fn vs_main(
 ) -> VertexOutput {
     var out: VertexOutput;
     out.tex_coords = model.tex_coords;
-    let width = 1600.0;
-    let height = 1200.0;
-
-    let x = model.position.x / width * 2.0 - 1.0;
-    let y = (model.position.y / height * 2.0 - 1.0) * -1.0;
-
-    //out.clip_position = vec4<f32>(model.position.x, model.position.y, 0.0, 1.0);
     out.clip_position = camera.view_proj * vec4<f32>(model.position, 1.0);
     return out;
 }
