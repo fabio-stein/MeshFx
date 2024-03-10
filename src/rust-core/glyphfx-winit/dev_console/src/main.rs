@@ -1,11 +1,15 @@
+use std::env;
 use winit_wrapper::{CursorMovedEventData, get_display_handle, get_window_handle, run_loop};
-
+use wgpu_wrapper::model::*;
 
 static mut APP_STATE: *const winit_wrapper::EventLoopState = std::ptr::null();
 static mut WGPU_STATE: *const wgpu_wrapper::State = std::ptr::null();
 
 fn main() {
-    run_loop(keyboard_event_callback, init_state_callback, cursor_moved_callback, mouse_input_callback, redraw_requested_callback, close_requested_callback);
+    let file = ObjFile::load("cube/cube.obj").unwrap();
+    //simple debug data:
+    println!("models: {:?}", file);
+    //run_loop(keyboard_event_callback, init_state_callback, cursor_moved_callback, mouse_input_callback, redraw_requested_callback, close_requested_callback);
 }
 
 extern "C" fn init_state_callback(state: *const winit_wrapper::EventLoopState) {
@@ -26,25 +30,6 @@ extern "C" fn init_state_callback(state: *const winit_wrapper::EventLoopState) {
     }
 }
 
-static mut VERTICES: &[wgpu_wrapper::Vertex] = &[
-    wgpu_wrapper::Vertex {
-        position: [0.0, 0.0, 0.0],
-        color: [1.0, 0.0, 0.0],
-    },
-    wgpu_wrapper::Vertex {
-        position: [0.0, 500.0, 0.0],
-        color: [0.0, 1.0, 0.0],
-    },
-    wgpu_wrapper::Vertex {
-        position: [500.0, 500.0, 0.0],
-        color: [0.0, 0.0, 1.0],
-    },
-    wgpu_wrapper::Vertex {
-        position: [500.0, 0.0, 0.0],
-        color: [1.0, 1.0, 0.0],
-    },
-];
-
 static mut INDICES: &[u16] = &[
     0, 1, 2,
     0, 2, 3,
@@ -63,7 +48,7 @@ extern "C" fn mouse_input_callback(event_data: winit_wrapper::MouseInputEventDat
 
         let state_ref = unsafe { &*WGPU_STATE };
 
-        wgpu_wrapper::render(state_ref, &VERTICES, &INDICES);
+        //wgpu_wrapper::render(state_ref, &VERTICES, &INDICES);
     }
 }
 

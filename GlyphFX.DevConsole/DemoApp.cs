@@ -5,7 +5,7 @@ namespace GlyphFX.DevConsole;
 
 public class DemoApp : EventApp
 {
-    private Vector3 eye = new Vector3(0, 1.0f, 2.0f);
+    private Vector3 eye = new Vector3(0, 4.0f, 10.0f);
     private Vector3 target = new Vector3(0, 0, 0f);
     private Vector3 up = new Vector3(0, 1, 0);
     private float fovDegrees = 60.0f;
@@ -24,7 +24,7 @@ public class DemoApp : EventApp
     {
         if (Input.IsButtonDown)
         {
-            speed += (Input.Button == 0) ? -0.001f : 0.001f;
+            speed += (Input.Button == 0) ? -0.01f : 0.01f;
         }
         
         UpdateVertex();

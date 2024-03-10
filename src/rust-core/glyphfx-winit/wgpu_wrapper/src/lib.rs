@@ -1,4 +1,5 @@
 mod texture;
+pub mod model;
 
 use std::borrow::Cow;
 use std::ffi::c_void;
@@ -6,14 +7,8 @@ use std::mem;
 use wgpu::{Adapter, BindGroup, Buffer, Device, Instance, PipelineLayout, Queue, RenderPipeline, ShaderModule, Surface, SurfaceConfiguration, SurfaceTargetUnsafe, VertexBufferLayout};
 use wgpu::rwh::{RawDisplayHandle, RawWindowHandle};
 use wgpu::util::DeviceExt;
+use crate::model::Vertex;
 use crate::texture::Texture;
-
-#[repr(C)]
-#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
-pub struct Vertex {
-    pub position: [f32; 3],
-    pub tex_coords: [f32; 2],
-}
 
 #[repr(C)]
 #[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
@@ -47,6 +42,7 @@ pub struct State {
     camera_bind_group: BindGroup,
     instance_buffer: Buffer,
     depth_texture: Texture,
+    obj_file: model::ObjFile,
 }
 
 #[no_mangle]
@@ -59,7 +55,7 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
 
     let width = 1600;
     let height = 1200;
-    let predefined_buffer_size = 1000;
+    let predefined_buffer_size = 2000;
 
     let instance = Instance::default();
 
@@ -129,14 +125,19 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
                 offset: std::mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
                 shader_location: 1, //V Tex Coords
                 format: wgpu::VertexFormat::Float32x2,
-            }
+            },
+            wgpu::VertexAttribute {
+                offset: std::mem::size_of::<[f32; 5]>() as wgpu::BufferAddress,
+                shader_location: 2, //V Normal
+                format: wgpu::VertexFormat::Float32x3,
+            },
         ]
     };
 
     let index_buffer = device.create_buffer(
         &wgpu::BufferDescriptor {
             label: None,
-            size: (predefined_buffer_size * std::mem::size_of::<u16>()) as wgpu::BufferAddress,
+            size: (predefined_buffer_size * std::mem::size_of::<u32>()) as wgpu::BufferAddress,
             usage: wgpu::BufferUsages::INDEX | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         }
@@ -313,6 +314,8 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
         multiview: None,
     });
 
+    let obj_file = model::ObjFile::load("cube/cube.obj", &device, &queue, &texture_bind_group_layout).unwrap();
+
     let state = Box::new(State {
         width,
         height,
@@ -333,6 +336,7 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
         camera_bind_group,
         instance_buffer,
         depth_texture,
+        obj_file,
     });
 
     Box::into_raw(state)
@@ -380,6 +384,11 @@ pub extern "C" fn render(state: &mut State, vertex_ptr: *mut c_void, indices: *c
                 occlusion_query_set: None,
             });
 
+        let vertices= state.obj_file.models[0].vertices.as_slice();
+        let indices = state.obj_file.models[0].indices.as_slice();
+
+        println!("Indices: {:?}", indices.len());
+
         state.queue.write_buffer(&state.vertex_buffer, 0, bytemuck::cast_slice(vertices));
         state.queue.write_buffer(&state.instance_buffer, 0, bytemuck::cast_slice(instance_single_matrix));
         state.queue.write_buffer(&state.index_buffer, 0, bytemuck::cast_slice(indices));
@@ -387,11 +396,12 @@ pub extern "C" fn render(state: &mut State, vertex_ptr: *mut c_void, indices: *c
         state.queue.write_buffer(&state.camera_buffer, 0, bytemuck::cast_slice(camera_uniform));
 
         rpass.set_pipeline(&state.render_pipeline);
-        rpass.set_bind_group(0, &state.diffuse_bind_group, &[]);
+        //rpass.set_bind_group(0, &state.diffuse_bind_group, &[]);
+        rpass.set_bind_group(0, &state.obj_file.materials[0].bind_group, &[]);
         rpass.set_bind_group(1, &state.camera_bind_group, &[]);
         rpass.set_vertex_buffer(0, state.vertex_buffer.slice(..));
         rpass.set_vertex_buffer(1, state.instance_buffer.slice(..));
-        rpass.set_index_buffer(state.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
+        rpass.set_index_buffer(state.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
 
         rpass.draw_indexed(0..indices.len() as u32, 0, 0..2);
     }
