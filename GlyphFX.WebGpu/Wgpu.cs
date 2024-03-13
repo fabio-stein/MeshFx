@@ -11,4 +11,7 @@ public class Wgpu
     
     [DllImport(Lib)]
     public static extern void render(IntPtr state, IntPtr vertexBuffer, IntPtr indexBuffer, IntPtr cameraUniformBuffer, IntPtr instanceSingleMatrixBuffer);
+    
+    [DllImport(Lib)]
+    public static extern void load_texture(IntPtr state, IntPtr data, int size);
 }

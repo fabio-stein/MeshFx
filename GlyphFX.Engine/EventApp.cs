@@ -1,4 +1,5 @@
 using System.Numerics;
+using System.Runtime.InteropServices;
 using GlyphFX.WebGpu;
 using GlyphFX.Window;
 
@@ -12,8 +13,8 @@ public abstract class EventApp
     IntPtr wgpuState = IntPtr.Zero;
     
     InputHandler inputHandler = new();
-    SharedBuffer<Vertex> vertexBuffer = new(8);
-    SharedBuffer<ushort> indexBuffer = new(36);
+    SharedBuffer<Vertex> vertexBuffer = new(3);
+    SharedBuffer<UInt32> indexBuffer = new(3);
     SharedBuffer<Matrix4x4> cameraBuffer = new(1);
     SharedBuffer<Matrix4x4> instanceMatrixBuffer = new(2);
     
@@ -45,6 +46,11 @@ public abstract class EventApp
         Winit.request_redraw(winitState);
     }
     
+    public void LoadTexture(ref byte[] data)
+    {
+        Wgpu.load_texture(wgpuState, Marshal.UnsafeAddrOfPinnedArrayElement(data, 0), data.Length);
+    }
+    
     private void RedrawRequested()
     {
         if(winitState == IntPtr.Zero)
@@ -64,7 +70,7 @@ public abstract class EventApp
         vertexBuffer.SetData(vertices);
     }
     
-    public void SetIndices(ushort[] indices)
+    public void SetIndices(UInt32[] indices)
     {
         indexBuffer.SetData(indices);
     }

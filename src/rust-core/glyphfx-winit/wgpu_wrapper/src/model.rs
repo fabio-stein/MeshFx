@@ -1,7 +1,6 @@
 use std::path::Path;
 use wgpu::{BindGroupLayout, Device, Queue};
 use crate::{State, texture};
-use crate::texture::load_texture;
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
@@ -34,6 +33,8 @@ pub struct ObjFile {
 
 impl ObjFile {
     pub fn load(file_path: &str, device: &Device, queue: &Queue, texture_bind_group_layout: &BindGroupLayout) -> Result<Self, String> {
+        panic!("not implemented");
+        /*
         let (models, materials_result) = tobj::load_obj(Path::new(file_path),
                                                         &tobj::LoadOptions {
                                                             triangulate: true,
@@ -92,5 +93,7 @@ impl ObjFile {
             models: obj_models,
             materials: mapped_materials,
         })
+        */
+
     }
 }

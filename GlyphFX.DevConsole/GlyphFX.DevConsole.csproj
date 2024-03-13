@@ -24,6 +24,13 @@
       <None Update="cube\cube-normal.png">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
+      <None Update="model.glb">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="SharpGLTF.Core" Version="1.0.0-alpha0031" />
     </ItemGroup>
 
 </Project>

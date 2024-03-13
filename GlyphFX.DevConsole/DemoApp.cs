@@ -1,11 +1,12 @@
 using System.Numerics;
 using GlyphFX.Engine;
+using SharpGLTF.Schema2;
 
 namespace GlyphFX.DevConsole;
 
 public class DemoApp : EventApp
 {
-    private Vector3 eye = new Vector3(0, 4.0f, 10.0f);
+    private Vector3 eye = new Vector3(0, 2.0f, 4.0f);
     private Vector3 target = new Vector3(0, 0, 0f);
     private Vector3 up = new Vector3(0, 1, 0);
     private float fovDegrees = 60.0f;
@@ -15,9 +16,27 @@ public class DemoApp : EventApp
 
     private float speed = 0.01f;
     private float rotationAngle = 0.0f;
+
+    private ModelRoot model;
+    private List<Vertex> vertices = new();
     
     public override void Start()
     {
+        model = ModelRoot.Load("model.glb");
+        var position = model.LogicalMeshes.First().Primitives.First().GetVertexAccessor("POSITION").AsVector3Array().ToList();
+        var normal = model.LogicalMeshes.First().Primitives.First().GetVertexAccessor("NORMAL").AsVector3Array().ToList();
+        var texCoord = model.LogicalMeshes.First().Primitives.First().GetVertexAccessor("TEXCOORD_0").AsVector2Array().ToList();
+        
+        for (int i = 0; i < position.Count; i++)
+        {
+            var posMap = new Vec3(position[i].X, position[i].Y, position[i].Z);
+            var texMap = new Vec2(texCoord[i].X, texCoord[i].Y);
+            var normMap = new Vec3(normal[i].X, normal[i].Y, normal[i].Z);
+            vertices.Add(new Vertex(posMap, texMap, normMap));
+        }
+
+        var texture = model.LogicalTextures.First().PrimaryImage.Content.Content.ToArray();
+        LoadTexture(ref texture);
     }
 
     public override void Update()
@@ -44,38 +63,17 @@ public class DemoApp : EventApp
 
     private void UpdateVertex()
     {
-        var left = new Vec3(-0.5f, -0.5f, -0.5f);
-        var right = new Vec3(0.5f, 0.5f, 0.5f);
+        SetVertices(vertices.ToArray());
         
-        Vertex[] vertices =
-        [
-            new Vertex { position = new Vec3(left.x, left.y, right.z), textureCoords = new Vec2(0, 1) },
-            new Vertex { position = new Vec3(right.x, left.y, right.z), textureCoords = new Vec2(1, 1) },
-            new Vertex { position = new Vec3(right.x, right.y, right.z), textureCoords = new Vec2(1, 0) },
-            new Vertex { position = new Vec3(left.x, right.y, right.z), textureCoords = new Vec2(0, 0) },
-            
-            new Vertex { position = new Vec3(left.x, left.y, left.z), textureCoords = new Vec2(0, 1) },
-            new Vertex { position = new Vec3(right.x, left.y, left.z), textureCoords = new Vec2(1, 1) },
-            new Vertex { position = new Vec3(right.x, right.y, left.z), textureCoords = new Vec2(1, 0) },
-            new Vertex { position = new Vec3(left.x, right.y, left.z), textureCoords = new Vec2(0, 0) }
-        ];
-        
-        SetVertices(vertices);
-        
-        var indices = new ushort[]
+        var indices = new UInt32[]
         {
-            0, 1, 2, 0,2,3,
-            4,0,3,4,3,7,
-            1,5,6,1,6,2,
-            2,6,7,2,7,3,
-            4,5,1,4,1,0,
-            5,4,7,5,7,6,
+            0, 1, 2
         };
         
         SetIndices(indices);
         
-        var obj1 = Matrix4x4.CreateTranslation(-0.6f, 0, 0);
-        var obj2 = Matrix4x4.CreateTranslation(speed, -0.2f, -0.5f);
+        var obj1 = Matrix4x4.CreateTranslation(0f, 0, 0);
+        var obj2 = Matrix4x4.CreateTranslation(speed, -0.2f , -0.5f + speed);
         
         var instances = new Matrix4x4[] { obj1, obj2 };
         SetInstanceMatrix(instances);

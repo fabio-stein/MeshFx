@@ -4,9 +4,11 @@ namespace GlyphFX.Engine;
 
 
 [StructLayout(LayoutKind.Sequential)]
-public struct Vertex {
-    public Vec3 position;
-    public Vec2 textureCoords;
+public struct Vertex(Vec3 position, Vec2 textureCoords, Vec3 normal)
+{
+    public Vec3 position = position;
+    public Vec2 textureCoords = textureCoords;
+    public Vec3 normal = normal;
 }
 
 [StructLayout(LayoutKind.Sequential)]

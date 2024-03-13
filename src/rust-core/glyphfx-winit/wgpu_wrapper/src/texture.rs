@@ -1,6 +1,5 @@
 use image::GenericImageView;
 use anyhow::*;
-use wgpu::{BindGroup, BindGroupLayout, Device};
 
 #[derive(Debug)]
 pub struct Texture {
@@ -118,42 +117,4 @@ impl Texture {
 
         Self { texture, view, sampler }
     }
-}
-
-pub fn load_texture(
-    file_name: &str,
-    device: &wgpu::Device,
-    queue: &wgpu::Queue,
-) -> Result<Texture> {
-    let data = load_binary(file_name);
-
-    Texture::from_bytes(device, queue, &data, file_name)
-}
-
-pub fn load_binary(file_name: &str) -> Vec<u8> {
-    let path = std::path::Path::new("cube")
-        .join(file_name);
-    let data = std::fs::read(path);
-    if data.is_err() {
-        panic!("File not found: {}", file_name);
-    }
-    data.unwrap()
-}
-
-pub fn create_bind_group(device: &Device, diffuse_texture: &Texture, layout: &BindGroupLayout) -> BindGroup {
-    let bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-        layout,
-        entries: &[
-            wgpu::BindGroupEntry {
-                binding: 0,
-                resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
-            },
-            wgpu::BindGroupEntry {
-                binding: 1,
-                resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
-            },
-        ],
-        label: None,
-    });
-    bind_group
 }
