@@ -7,6 +7,8 @@ namespace GlyphFX.Engine;
 
 public abstract class AppStateManager
 {
+    public WorldManager World = new();
+    
     IntPtr winitState = IntPtr.Zero;
     IntPtr windowHandle = IntPtr.Zero;
     IntPtr displayHandle = IntPtr.Zero;
@@ -41,12 +43,14 @@ public abstract class AppStateManager
         
         Console.WriteLine("EventApp initialized");
         
+        World.SetCamera(new Camera());
+        
         Start();
         Render();
         Winit.request_redraw(winitState);
     }
     
-    public void LoadTexture(ref byte[] data)
+    public void LoadTexture(byte[] data)
     {
         Wgpu.load_texture(wgpuState, Marshal.UnsafeAddrOfPinnedArrayElement(data, 0), data.Length);
     }
@@ -65,21 +69,6 @@ public abstract class AppStateManager
     {
     }
     
-    public void SetVertices(Vertex[] vertices)
-    {
-        vertexBuffer.SetData(vertices);
-    }
-    
-    public void SetIndices(UInt32[] indices)
-    {
-        indexBuffer.SetData(indices);
-    }
-    
-    public void SetCamera(Matrix4x4 camera)
-    {
-        cameraBuffer.SetData(new Matrix4x4[] { camera });
-    }
-    
     public void SetInstanceMatrix(Matrix4x4[] instances)
     {
         instanceMatrixBuffer.SetData(instances);
@@ -87,6 +76,10 @@ public abstract class AppStateManager
 
     public void Render()
     {
+        cameraBuffer.SetData([World.CurrentCamera.ViewProjection]);
+        var mesh = World.CurrentScene.Nodes.First().Mesh.Primitives.First();
+        vertexBuffer.SetData(mesh.Vertices);
+        indexBuffer.SetData(mesh.Indices);
         Wgpu.render(wgpuState, vertexBuffer.Pointer, indexBuffer.Pointer, cameraBuffer.Pointer, instanceMatrixBuffer.Pointer);
     }
     
