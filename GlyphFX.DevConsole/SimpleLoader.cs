@@ -25,8 +25,10 @@ public class SimpleLoader
             var normMap = new Vec3(normal[i].X, normal[i].Y, normal[i].Z);
             vertices.Add(new Vertex(posMap, texMap, normMap));
         }
-        
-        indices.AddRange([0, 1, 2]);
+
+        indices.AddRange(model.LogicalNodes.First().Mesh.Primitives.First().IndexAccessor.AsIndicesArray()
+            .Select(i => (UInt32)i)
+            .ToList());
 
         var texture = model.LogicalTextures.First().PrimaryImage.Content.Content.ToArray();
 
