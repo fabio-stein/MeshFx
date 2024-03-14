@@ -5,7 +5,7 @@ using GlyphFX.Window;
 
 namespace GlyphFX.Engine;
 
-public abstract class EventApp
+public abstract class AppStateManager
 {
     IntPtr winitState = IntPtr.Zero;
     IntPtr windowHandle = IntPtr.Zero;
@@ -87,7 +87,7 @@ public abstract class EventApp
 
     public void Render()
     {
-        Wgpu.render(wgpuState, vertexBuffer.Buffer, indexBuffer.Buffer, cameraBuffer.Buffer, instanceMatrixBuffer.Buffer);
+        Wgpu.render(wgpuState, vertexBuffer.Pointer, indexBuffer.Pointer, cameraBuffer.Pointer, instanceMatrixBuffer.Pointer);
     }
     
     public abstract void Start();

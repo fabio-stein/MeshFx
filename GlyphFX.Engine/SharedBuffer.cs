@@ -4,14 +4,14 @@ namespace GlyphFX.Engine;
 
 public class SharedBuffer<T>: IDisposable where T : struct
 {
-    public IntPtr Buffer { get; private set; }
-    public int Size { get; private set; }
+    public IntPtr Pointer { get; private set; }
+    public int ByteCount { get; private set; }
     public int Count { get; private set; }
     
     public SharedBuffer(int count)
     {
-        Size = Marshal.SizeOf<T>() * count;
-        Buffer = Marshal.AllocHGlobal(Size);
+        ByteCount = Marshal.SizeOf<T>() * count;
+        Pointer = Marshal.AllocHGlobal(ByteCount);
         Count = count;
     }
     
@@ -22,17 +22,17 @@ public class SharedBuffer<T>: IDisposable where T : struct
         
         for (int i = 0; i < data.Length; i++)
         {
-            IntPtr ptr = Buffer + i * Marshal.SizeOf<T>();
+            IntPtr ptr = Pointer + i * Marshal.SizeOf<T>();
             Marshal.StructureToPtr(data[i], ptr, false);
         }
     }
 
     private void ReleaseUnmanagedResources()
     {
-        if (Buffer != IntPtr.Zero)
+        if (Pointer != IntPtr.Zero)
         {
-            Marshal.FreeHGlobal(Buffer);
-            Buffer = IntPtr.Zero;
+            Marshal.FreeHGlobal(Pointer);
+            Pointer = IntPtr.Zero;
         }
     }
 

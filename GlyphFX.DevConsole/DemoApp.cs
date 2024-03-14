@@ -4,7 +4,7 @@ using SharpGLTF.Schema2;
 
 namespace GlyphFX.DevConsole;
 
-public class DemoApp : EventApp
+public class DemoApp : AppStateManager
 {
     private Vector3 eye = new Vector3(0, 2.0f, 4.0f);
     private Vector3 target = new Vector3(0, 0, 0f);

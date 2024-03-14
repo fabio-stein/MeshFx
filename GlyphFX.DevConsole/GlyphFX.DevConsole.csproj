@@ -12,18 +12,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="cube\cube.mtl">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-      <None Update="cube\cube.obj">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-      <None Update="cube\cube-diffuse.jpg">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-      <None Update="cube\cube-normal.png">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
       <None Update="model.glb">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
