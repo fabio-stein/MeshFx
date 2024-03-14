@@ -68,11 +68,6 @@ public abstract class AppStateManager
     private void CloseRequested()
     {
     }
-    
-    public void SetInstanceMatrix(Matrix4x4[] instances)
-    {
-        instanceMatrixBuffer.SetData(instances);
-    }
 
     public void Render()
     {
@@ -80,6 +75,8 @@ public abstract class AppStateManager
         var mesh = World.CurrentScene.Nodes.First().Mesh.Primitives.First();
         vertexBuffer.SetData(mesh.Vertices);
         indexBuffer.SetData(mesh.Indices);
+        var matrix = World.CurrentScene.Nodes.First().LocalMatrix;
+        instanceMatrixBuffer.SetData([Matrix4x4.Identity, matrix]);
         Wgpu.render(wgpuState, vertexBuffer.Pointer, indexBuffer.Pointer, cameraBuffer.Pointer, instanceMatrixBuffer.Pointer);
     }
     

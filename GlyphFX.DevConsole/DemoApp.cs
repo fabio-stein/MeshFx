@@ -22,15 +22,7 @@ public class DemoApp : AppStateManager
             movement += speed * (Input.Button == 0 ? -1 : 1);
         }
         
-        UpdateVertex();
-    }
-
-    private void UpdateVertex()
-    {
-        var obj1 = Matrix4x4.CreateTranslation(0f, 0, 0);
-        var obj2 = Matrix4x4.CreateTranslation(movement, -0.2f , -0.5f + movement);
-        
-        var instances = new Matrix4x4[] { obj1, obj2 };
-        SetInstanceMatrix(instances);
+        var node = World.CurrentScene.Nodes.First();
+        node.Transform.Translation.X = movement;
     }
 }

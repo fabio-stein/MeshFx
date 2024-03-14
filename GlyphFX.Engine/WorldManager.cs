@@ -27,10 +27,20 @@ public class Scene(Node[] nodes)
     public Node[] Nodes { get; private set; } = nodes;
 }
 
-public class Node(Node[]? children, Mesh? mesh)
+public class Node(Node[]? children, Mesh? mesh, Matrix4x4? baseMatrix = null, Node.NodeTransform? transform = null)
 {
     public Node[]? Children { get; private set; } = children;
+    public readonly Matrix4x4 BaseMatrix = baseMatrix ?? Matrix4x4.Identity;
+    public NodeTransform Transform { get; private set; } = transform ?? new NodeTransform();
+    public Matrix4x4 LocalMatrix =>  Matrix4x4.CreateScale(Transform.Scale) * Matrix4x4.CreateFromQuaternion(Transform.Rotation) * Matrix4x4.CreateTranslation(Transform.Translation) * BaseMatrix;
     public Mesh? Mesh { get; private set; } = mesh;
+    
+    public class NodeTransform()
+    {
+        public Vector3 Translation = Vector3.Zero;
+        public Quaternion Rotation = Quaternion.Identity;
+        public Vector3 Scale = Vector3.One;
+    }
 }
 
 public class Mesh(MeshPrimitive[] primitives)
