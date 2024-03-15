@@ -11,7 +11,7 @@ public class DemoApp : AppStateManager
     public override void Start()
     {
         var data = SimpleLoader.LoadGltf();
-        LoadTexture(data.texture);
+        DefaultMaterial = new Material(data.texture);
         World.LoadScene(data.scene);
     }
 

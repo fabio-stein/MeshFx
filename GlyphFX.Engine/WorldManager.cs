@@ -55,6 +55,11 @@ public class MeshPrimitive(Vertex[] vertices, UInt32[] indices)
     //private Material _material; //TODO
 }
 
+public class Material(byte[] textureData)
+{
+    public readonly byte[] TextureData = textureData;
+}
+
 public class Camera
 {
     private Vector3 _eye = new Vector3(0, 2.0f, 4.0f);
