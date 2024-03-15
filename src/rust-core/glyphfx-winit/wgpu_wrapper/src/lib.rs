@@ -55,7 +55,7 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
 
     let width = 1600;
     let height = 1200;
-    let predefined_buffer_size = 2000;
+    let predefined_buffer_size = 5000;
 
     let instance = Instance::default();
 

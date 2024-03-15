@@ -5,7 +5,7 @@ namespace GlyphFX.DevConsole;
 
 public class DemoApp : AppStateManager
 {
-    private float speed = 0.1f;
+    private float speed = 0.001f;
     private float movement = 0f;
 
     public override void Start()
@@ -23,6 +23,7 @@ public class DemoApp : AppStateManager
         }
         
         var node = World.CurrentScene.Nodes.First();
-        node.Transform.Translation.X = movement;
+        node.Transform.Rotation *= Quaternion.CreateFromAxisAngle(Vector3.UnitY, movement);
+        node.Transform.Scale = Vector3.One * 30;
     }
 }

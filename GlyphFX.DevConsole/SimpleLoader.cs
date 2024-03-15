@@ -30,7 +30,7 @@ public class SimpleLoader
             .Select(i => (UInt32)i)
             .ToList());
 
-        var texture = model.LogicalTextures.First().PrimaryImage.Content.Content.ToArray();
+        var texture = model.LogicalTextures[1].PrimaryImage.Content.Content.ToArray();
 
         var primitive = new MeshPrimitive(vertices.ToArray(), indices.ToArray());
         var mesh = new Mesh([primitive]);

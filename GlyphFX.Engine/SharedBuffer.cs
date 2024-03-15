@@ -18,7 +18,7 @@ public class SharedBuffer<T>: IDisposable where T : struct
     public void SetData(T[] data)
     {
         if (data.Length != Count)
-            throw new Exception("Data length does not match buffer count");
+            throw new Exception($"Data length of {data.Length} does not match buffer size: {Count}");
         
         for (int i = 0; i < data.Length; i++)
         {

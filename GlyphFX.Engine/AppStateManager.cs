@@ -15,8 +15,8 @@ public abstract class AppStateManager
     IntPtr wgpuState = IntPtr.Zero;
     
     InputHandler inputHandler = new();
-    SharedBuffer<Vertex> vertexBuffer = new(3);
-    SharedBuffer<UInt32> indexBuffer = new(3);
+    SharedBuffer<Vertex> vertexBuffer = new(406);
+    SharedBuffer<UInt32> indexBuffer = new(2046);
     SharedBuffer<Matrix4x4> cameraBuffer = new(1);
     SharedBuffer<Matrix4x4> instanceMatrixBuffer = new(2);
     
@@ -49,6 +49,7 @@ public abstract class AppStateManager
         
         Start();
         Render();
+        
         Winit.request_redraw(winitState);
     }
     
@@ -80,6 +81,8 @@ public abstract class AppStateManager
         var matrix = World.CurrentScene.Nodes.First().LocalMatrix;
         instanceMatrixBuffer.SetData([Matrix4x4.Identity, matrix]);
         Wgpu.render(wgpuState, vertexBuffer.Pointer, (uint)vertexBuffer.Count, indexBuffer.Pointer, (uint)indexBuffer.Count, cameraBuffer.Pointer, instanceMatrixBuffer.Pointer, MaterialPtr);
+
+        Task.Delay(10).Wait();
     }
     
     public abstract void Start();
