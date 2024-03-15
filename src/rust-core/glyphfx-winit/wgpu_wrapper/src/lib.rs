@@ -318,9 +318,9 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
 }
 
 #[no_mangle]
-pub extern "C" fn render(state: &mut State, vertex_ptr: *mut c_void, indices: *const u32, camera_uniform: *const f32, instances_single_matrix: *const f32, material: &mut Material){
-    let vertices = unsafe { std::slice::from_raw_parts(vertex_ptr as *const Vertex, 3) };
-    let indices = unsafe { std::slice::from_raw_parts(indices, 3) };
+pub extern "C" fn render(state: &mut State, vertex_ptr: *mut c_void, vertex_count: u32, indices: *const u32, index_count: u32, camera_uniform: *const f32, instances_single_matrix: *const f32, material: &mut Material){
+    let vertices = unsafe { std::slice::from_raw_parts(vertex_ptr as *const Vertex, vertex_count as usize) };
+    let indices = unsafe { std::slice::from_raw_parts(indices, index_count as usize) };
     let camera_uniform = unsafe { std::slice::from_raw_parts(camera_uniform, 16) };
     let instance_single_matrix = unsafe { std::slice::from_raw_parts(instances_single_matrix, 32) };
 

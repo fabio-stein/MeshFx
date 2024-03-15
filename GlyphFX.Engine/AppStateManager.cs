@@ -79,7 +79,7 @@ public abstract class AppStateManager
         indexBuffer.SetData(mesh.Indices);
         var matrix = World.CurrentScene.Nodes.First().LocalMatrix;
         instanceMatrixBuffer.SetData([Matrix4x4.Identity, matrix]);
-        Wgpu.render(wgpuState, vertexBuffer.Pointer, indexBuffer.Pointer, cameraBuffer.Pointer, instanceMatrixBuffer.Pointer, MaterialPtr);
+        Wgpu.render(wgpuState, vertexBuffer.Pointer, (uint)vertexBuffer.Count, indexBuffer.Pointer, (uint)indexBuffer.Count, cameraBuffer.Pointer, instanceMatrixBuffer.Pointer, MaterialPtr);
     }
     
     public abstract void Start();
