@@ -20,6 +20,8 @@ public abstract class AppStateManager
     SharedBuffer<Matrix4x4> cameraBuffer = new(1);
     SharedBuffer<Matrix4x4> instanceMatrixBuffer = new(2);
     
+    IntPtr MaterialPtr = IntPtr.Zero;
+    
     public InputStatus Input => inputHandler.InputStatus;
     
     internal void StartInternal()
@@ -52,7 +54,7 @@ public abstract class AppStateManager
     
     public void LoadTexture(byte[] data)
     {
-        Wgpu.load_texture(wgpuState, Marshal.UnsafeAddrOfPinnedArrayElement(data, 0), data.Length);
+        MaterialPtr = Wgpu.load_texture(wgpuState, Marshal.UnsafeAddrOfPinnedArrayElement(data, 0), data.Length);
     }
     
     private void RedrawRequested()
@@ -77,7 +79,7 @@ public abstract class AppStateManager
         indexBuffer.SetData(mesh.Indices);
         var matrix = World.CurrentScene.Nodes.First().LocalMatrix;
         instanceMatrixBuffer.SetData([Matrix4x4.Identity, matrix]);
-        Wgpu.render(wgpuState, vertexBuffer.Pointer, indexBuffer.Pointer, cameraBuffer.Pointer, instanceMatrixBuffer.Pointer);
+        Wgpu.render(wgpuState, vertexBuffer.Pointer, indexBuffer.Pointer, cameraBuffer.Pointer, instanceMatrixBuffer.Pointer, MaterialPtr);
     }
     
     public abstract void Start();

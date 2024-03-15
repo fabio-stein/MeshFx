@@ -1,5 +1,6 @@
 mod texture;
 pub mod model;
+mod material;
 
 use std::borrow::Cow;
 use std::ffi::c_void;
@@ -7,6 +8,7 @@ use std::mem;
 use wgpu::{Adapter, BindGroup, BindGroupLayout, Buffer, Device, Instance, PipelineLayout, Queue, RenderPipeline, ShaderModule, Surface, SurfaceConfiguration, SurfaceTargetUnsafe, VertexBufferLayout};
 use wgpu::rwh::{RawDisplayHandle, RawWindowHandle};
 use wgpu::util::DeviceExt;
+use crate::material::Material;
 use crate::model::Vertex;
 use crate::texture::Texture;
 
@@ -36,8 +38,6 @@ pub struct State {
     config: SurfaceConfiguration,
     vertex_buffer: Buffer,
     index_buffer: Buffer,
-    diffuse_bind_group: Option<BindGroup>,
-    diffuse_texture: Option<Texture>,
     texture_bind_group_layout: BindGroupLayout,
     camera_buffer: Buffer,
     camera_bind_group: BindGroup,
@@ -307,8 +307,6 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
         config,
         vertex_buffer,
         index_buffer,
-        diffuse_bind_group: None,
-        diffuse_texture: None,
         texture_bind_group_layout,
         camera_buffer,
         camera_bind_group,
@@ -320,35 +318,7 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
 }
 
 #[no_mangle]
-pub extern "C" fn load_texture(state: &mut State, texture_ptr: *const u8, data_size: u32){
-    let diffuse_bytes = unsafe { std::slice::from_raw_parts(texture_ptr, data_size as usize) };
-    let diffuse_texture = texture::Texture::from_bytes(&state.device, &state.queue, diffuse_bytes, "texture.jpg").unwrap();
-
-    let diffuse_bind_group = state.device.create_bind_group(
-        &wgpu::BindGroupDescriptor {
-            layout: &state.texture_bind_group_layout,
-            entries: &[
-                wgpu::BindGroupEntry {
-                    binding: 0,
-                    resource: wgpu::BindingResource::TextureView(&diffuse_texture.view),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 1,
-                    resource: wgpu::BindingResource::Sampler(&diffuse_texture.sampler),
-                }
-            ],
-            label: Some("diffuse_bind_group"),
-        }
-    );
-
-    state.diffuse_texture = Some(diffuse_texture);
-    state.diffuse_bind_group = Some(diffuse_bind_group);
-}
-
-
-
-#[no_mangle]
-pub extern "C" fn render(state: &mut State, vertex_ptr: *mut c_void, indices: *const u32, camera_uniform: *const f32, instances_single_matrix: *const f32){
+pub extern "C" fn render(state: &mut State, vertex_ptr: *mut c_void, indices: *const u32, camera_uniform: *const f32, instances_single_matrix: *const f32, material: &mut Material){
     let vertices = unsafe { std::slice::from_raw_parts(vertex_ptr as *const Vertex, 3) };
     let indices = unsafe { std::slice::from_raw_parts(indices, 3) };
     let camera_uniform = unsafe { std::slice::from_raw_parts(camera_uniform, 16) };
@@ -396,9 +366,7 @@ pub extern "C" fn render(state: &mut State, vertex_ptr: *mut c_void, indices: *c
 
         rpass.set_pipeline(&state.render_pipeline);
 
-        let diffuse_bind_group = state.diffuse_bind_group.as_ref().unwrap();
-
-        rpass.set_bind_group(0, diffuse_bind_group, &[]);
+        rpass.set_bind_group(0, &material.bind_group, &[]);
         rpass.set_bind_group(1, &state.camera_bind_group, &[]);
         rpass.set_vertex_buffer(0, state.vertex_buffer.slice(..));
         rpass.set_vertex_buffer(1, state.instance_buffer.slice(..));
