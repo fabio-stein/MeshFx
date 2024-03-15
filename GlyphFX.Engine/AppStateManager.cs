@@ -81,8 +81,6 @@ public abstract class AppStateManager
         var matrix = World.CurrentScene.Nodes.First().LocalMatrix;
         instanceMatrixBuffer.SetData([Matrix4x4.Identity, matrix]);
         Wgpu.render(wgpuState, vertexBuffer.Pointer, (uint)vertexBuffer.Count, indexBuffer.Pointer, (uint)indexBuffer.Count, cameraBuffer.Pointer, instanceMatrixBuffer.Pointer, MaterialPtr);
-
-        Task.Delay(10).Wait();
     }
     
     public abstract void Start();
