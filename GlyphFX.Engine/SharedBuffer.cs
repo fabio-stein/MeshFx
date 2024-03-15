@@ -8,6 +8,11 @@ public class SharedBuffer<T>: IDisposable where T : struct
     public int ByteCount { get; private set; }
     public int Count { get; private set; }
     
+    public SharedBuffer(T[] data) : this(data.Length)
+    {
+        SetData(data);
+    }
+    
     public SharedBuffer(int count)
     {
         ByteCount = Marshal.SizeOf<T>() * count;

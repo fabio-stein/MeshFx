@@ -15,11 +15,10 @@ public abstract class AppStateManager
     IntPtr wgpuState = IntPtr.Zero;
     
     InputHandler inputHandler = new();
-    SharedBuffer<Vertex> vertexBuffer = new(406);
-    SharedBuffer<UInt32> indexBuffer = new(2046);
     SharedBuffer<Matrix4x4> cameraBuffer = new(1);
     SharedBuffer<Matrix4x4> instanceMatrixBuffer = new(2);
     
+    IntPtr MeshPtr = IntPtr.Zero;
     IntPtr MaterialPtr = IntPtr.Zero;
     
     public InputStatus Input => inputHandler.InputStatus;
@@ -71,16 +70,28 @@ public abstract class AppStateManager
     private void CloseRequested()
     {
     }
-
+    
     public void Render()
     {
         cameraBuffer.SetData([World.CurrentCamera.ViewProjection]);
-        var mesh = World.CurrentScene.Nodes.First().Mesh.Primitives.First();
-        vertexBuffer.SetData(mesh.Vertices);
-        indexBuffer.SetData(mesh.Indices);
+
+        if (MeshPtr == IntPtr.Zero)
+            LoadMesh();
+        
         var matrix = World.CurrentScene.Nodes.First().LocalMatrix;
         instanceMatrixBuffer.SetData([Matrix4x4.Identity, matrix]);
-        Wgpu.render(wgpuState, vertexBuffer.Pointer, (uint)vertexBuffer.Count, indexBuffer.Pointer, (uint)indexBuffer.Count, cameraBuffer.Pointer, instanceMatrixBuffer.Pointer, MaterialPtr);
+        
+        Wgpu.render(wgpuState, cameraBuffer.Pointer, instanceMatrixBuffer.Pointer, MeshPtr, MaterialPtr);
+    }
+
+    private void LoadMesh()
+    {
+        var mesh = World.CurrentScene.Nodes.First().Mesh.Primitives.First();
+        var vertexBuffer = new SharedBuffer<Vertex>(mesh.Vertices);
+        var indexBuffer = new SharedBuffer<uint>(mesh.Indices);
+        MeshPtr = Wgpu.load_mesh(wgpuState, vertexBuffer.Pointer, vertexBuffer.Count, indexBuffer.Pointer, indexBuffer.Count);
+        vertexBuffer.Dispose();
+        indexBuffer.Dispose();
     }
     
     public abstract void Start();

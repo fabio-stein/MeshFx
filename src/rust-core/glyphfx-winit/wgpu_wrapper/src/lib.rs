@@ -9,7 +9,7 @@ use wgpu::{Adapter, BindGroup, BindGroupLayout, Buffer, Device, Instance, Pipeli
 use wgpu::rwh::{RawDisplayHandle, RawWindowHandle};
 use wgpu::util::DeviceExt;
 use crate::material::Material;
-use crate::model::Vertex;
+use crate::model::{Mesh, Vertex};
 use crate::texture::Texture;
 
 #[repr(C)]
@@ -36,8 +36,6 @@ pub struct State {
     pipeline_layout: PipelineLayout,
     render_pipeline: RenderPipeline,
     config: SurfaceConfiguration,
-    vertex_buffer: Buffer,
-    index_buffer: Buffer,
     texture_bind_group_layout: BindGroupLayout,
     camera_buffer: Buffer,
     camera_bind_group: BindGroup,
@@ -102,15 +100,6 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
 
     let swapchain_capabilities = surface.get_capabilities(&adapter);
     let swapchain_format = swapchain_capabilities.formats[0];
-
-    let vertex_buffer = device.create_buffer(
-        &wgpu::BufferDescriptor {
-            label: None,
-            size: (predefined_buffer_size * std::mem::size_of::<Vertex>()) as wgpu::BufferAddress,
-            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        }
-    );
 
     let vertex_buffer_layout = VertexBufferLayout {
         array_stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress,
@@ -305,8 +294,6 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
         pipeline_layout,
         render_pipeline,
         config,
-        vertex_buffer,
-        index_buffer,
         texture_bind_group_layout,
         camera_buffer,
         camera_bind_group,
@@ -318,9 +305,7 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
 }
 
 #[no_mangle]
-pub extern "C" fn render(state: &mut State, vertex_ptr: *mut c_void, vertex_count: u32, indices: *const u32, index_count: u32, camera_uniform: *const f32, instances_single_matrix: *const f32, material: &mut Material){
-    let vertices = unsafe { std::slice::from_raw_parts(vertex_ptr as *const Vertex, vertex_count as usize) };
-    let indices = unsafe { std::slice::from_raw_parts(indices, index_count as usize) };
+pub extern "C" fn render(state: &mut State, camera_uniform: *const f32, instances_single_matrix: *const f32, mesh: &mut Mesh, material: &mut Material){
     let camera_uniform = unsafe { std::slice::from_raw_parts(camera_uniform, 16) };
     let instance_single_matrix = unsafe { std::slice::from_raw_parts(instances_single_matrix, 32) };
 
@@ -358,9 +343,7 @@ pub extern "C" fn render(state: &mut State, vertex_ptr: *mut c_void, vertex_coun
                 occlusion_query_set: None,
             });
 
-        state.queue.write_buffer(&state.vertex_buffer, 0, bytemuck::cast_slice(vertices));
         state.queue.write_buffer(&state.instance_buffer, 0, bytemuck::cast_slice(instance_single_matrix));
-        state.queue.write_buffer(&state.index_buffer, 0, bytemuck::cast_slice(indices));
 
         state.queue.write_buffer(&state.camera_buffer, 0, bytemuck::cast_slice(camera_uniform));
 
@@ -368,11 +351,11 @@ pub extern "C" fn render(state: &mut State, vertex_ptr: *mut c_void, vertex_coun
 
         rpass.set_bind_group(0, &material.bind_group, &[]);
         rpass.set_bind_group(1, &state.camera_bind_group, &[]);
-        rpass.set_vertex_buffer(0, state.vertex_buffer.slice(..));
+        rpass.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
         rpass.set_vertex_buffer(1, state.instance_buffer.slice(..));
-        rpass.set_index_buffer(state.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
+        rpass.set_index_buffer(mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
 
-        rpass.draw_indexed(0..indices.len() as u32, 0, 0..2);
+        rpass.draw_indexed(0..mesh.num_indices, 0, 0..2);
     }
 
     state.queue.submit(Some(encoder.finish()));
