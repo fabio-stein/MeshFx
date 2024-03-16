@@ -5,7 +5,7 @@ mod material;
 use std::borrow::Cow;
 use std::ffi::c_void;
 use std::mem;
-use wgpu::{Adapter, BindGroup, BindGroupLayout, Buffer, Device, Instance, PipelineLayout, Queue, RenderPipeline, ShaderModule, Surface, SurfaceConfiguration, SurfaceTargetUnsafe, VertexBufferLayout};
+use wgpu::{Adapter, BindGroup, BindGroupLayout, Buffer, Device, Instance, PipelineLayout, Queue, RenderPass, RenderPipeline, ShaderModule, Surface, SurfaceConfiguration, SurfaceTargetUnsafe, VertexBufferLayout};
 use wgpu::rwh::{RawDisplayHandle, RawWindowHandle};
 use wgpu::util::DeviceExt;
 use crate::material::Material;
@@ -40,7 +40,9 @@ pub struct State {
     camera_buffer: Buffer,
     camera_bind_group: BindGroup,
     instance_buffer: Buffer,
+    instance_buffer2: Buffer,
     depth_texture: Texture,
+    counter: u32,
 }
 
 #[no_mangle]
@@ -282,6 +284,15 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
         multiview: None,
     });
 
+    let instance_buffer2 = device.create_buffer(
+        &wgpu::BufferDescriptor {
+            label: None,
+            size: (predefined_buffer_size * std::mem::size_of::<InstanceRaw>()) as wgpu::BufferAddress,
+            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        }
+    );
+
     let state = Box::new(State {
         width,
         height,
@@ -298,17 +309,18 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
         camera_buffer,
         camera_bind_group,
         instance_buffer,
+        instance_buffer2,
         depth_texture,
+        counter: 0,
     });
 
     Box::into_raw(state)
 }
 
-#[no_mangle]
-pub extern "C" fn render(state: &mut State, camera_uniform: *const f32, instances_single_matrix: *const f32, mesh: &mut Mesh, material: &mut Material){
-    let camera_uniform = unsafe { std::slice::from_raw_parts(camera_uniform, 16) };
-    let instance_single_matrix = unsafe { std::slice::from_raw_parts(instances_single_matrix, 32) };
+type RenderCallback = extern "C" fn(*const RenderPass<'_>);
 
+#[no_mangle]
+pub extern "C" fn render(state: &mut State, render_callback: RenderCallback){
     let frame = state.surface
         .get_current_texture()
         .expect("Failed to acquire next swap chain texture");
@@ -343,21 +355,42 @@ pub extern "C" fn render(state: &mut State, camera_uniform: *const f32, instance
                 occlusion_query_set: None,
             });
 
-        state.queue.write_buffer(&state.instance_buffer, 0, bytemuck::cast_slice(instance_single_matrix));
-
-        state.queue.write_buffer(&state.camera_buffer, 0, bytemuck::cast_slice(camera_uniform));
-
         rpass.set_pipeline(&state.render_pipeline);
 
-        rpass.set_bind_group(0, &material.bind_group, &[]);
-        rpass.set_bind_group(1, &state.camera_bind_group, &[]);
-        rpass.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
-        rpass.set_vertex_buffer(1, state.instance_buffer.slice(..));
-        rpass.set_index_buffer(mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
-
-        rpass.draw_indexed(0..mesh.num_indices, 0, 0..2);
+        let rpass_raw_pointer = &mut rpass as *mut wgpu::RenderPass<'_>;
+        render_callback(rpass_raw_pointer);
     }
 
     state.queue.submit(Some(encoder.finish()));
     frame.present();
+}
+
+// pub struct RenderCommand<'a>{
+//     pub state: &'a mut State,
+//     pub rpass: wgpu::RenderPass<'a>,
+// }
+
+#[no_mangle]
+pub extern "C" fn draw(state: &'static mut State, rpass: &'static mut wgpu::RenderPass<'static>, camera_uniform: *const f32, instances_single_matrix: *const f32, mesh: &'static mut Mesh, material: &'static mut Material) {
+    let camera_uniform = unsafe { std::slice::from_raw_parts(camera_uniform, 16) };
+    let instance_single_matrix = unsafe { std::slice::from_raw_parts(instances_single_matrix, 16) };
+
+    if(state.counter == 0) {
+        state.queue.write_buffer(&state.instance_buffer, 0, bytemuck::cast_slice(instance_single_matrix));
+        rpass.set_vertex_buffer(1, state.instance_buffer.slice(..));
+        state.counter = 1;
+    }else{
+        state.queue.write_buffer(&state.instance_buffer2, 0, bytemuck::cast_slice(instance_single_matrix));
+        rpass.set_vertex_buffer(1, state.instance_buffer2.slice(..));
+        state.counter = 0;
+    }
+
+    state.queue.write_buffer(&state.camera_buffer, 0, bytemuck::cast_slice(camera_uniform));
+
+    rpass.set_bind_group(0, &material.bind_group, &[]);
+    rpass.set_bind_group(1, &state.camera_bind_group, &[]);
+    rpass.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
+    rpass.set_index_buffer(mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
+
+    rpass.draw_indexed(0..mesh.num_indices, 0, 0..1);
 }

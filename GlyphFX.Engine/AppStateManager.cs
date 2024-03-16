@@ -71,7 +71,7 @@ public abstract class AppStateManager
         var matrix = World.CurrentScene.Nodes.First().LocalMatrix;
         var mesh = World.CurrentScene.Nodes.First().Mesh.Primitives.First();
         
-        Gpu.Render(cameraProjection, [matrix, matrix], mesh, DefaultMaterial);
+        Gpu.Render(cameraProjection, [matrix], mesh, DefaultMaterial);
     }
     
     public abstract void Start();

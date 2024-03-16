@@ -45,6 +45,8 @@ public class GpuStateManager
         _materialPtrs.Add(material, pointer);
     }
     
+    public static Material TestMaterial { get; set; }
+    
     public void Render(Matrix4x4 cameraViewProjection, Matrix4x4[] instanceMatrix, MeshPrimitive mesh, Material material)
     {
         var meshPtr = GetOrLoadMeshPtr(mesh);
@@ -53,6 +55,14 @@ public class GpuStateManager
         var cameraBuffer = new SharedBuffer<Matrix4x4>([cameraViewProjection]);
         var instanceMatrixBuffer = new SharedBuffer<Matrix4x4>(instanceMatrix);
         
-        Wgpu.render(_wgpuState, cameraBuffer.Pointer, instanceMatrixBuffer.Pointer, meshPtr, materialPtr);
+        var material2 = GetOrLoadMaterialPtr(TestMaterial);
+        instanceMatrix[0] *= Matrix4x4.CreateTranslation(-1f, 0, 0);
+        var instanceMatrixBuffer2 = new SharedBuffer<Matrix4x4>(instanceMatrix);
+        
+        Wgpu.render(_wgpuState, (ptr) =>
+        {
+            Wgpu.draw(_wgpuState, ptr, cameraBuffer.Pointer, instanceMatrixBuffer.Pointer, meshPtr, materialPtr);
+            Wgpu.draw(_wgpuState, ptr, cameraBuffer.Pointer, instanceMatrixBuffer2.Pointer, meshPtr, material2);
+        });
     }
 }

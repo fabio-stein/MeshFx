@@ -12,6 +12,7 @@ public class DemoApp : AppStateManager
     {
         var data = SimpleLoader.LoadGltf();
         DefaultMaterial = new Material(data.texture);
+        GpuStateManager.TestMaterial = new Material(data.texture2);
         World.LoadScene(data.scene);
     }
 

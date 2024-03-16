@@ -31,6 +31,7 @@ public class SimpleLoader
             .ToList());
 
         var texture = model.LogicalTextures[1].PrimaryImage.Content.Content.ToArray();
+        var texture2 = model.LogicalTextures[0].PrimaryImage.Content.Content.ToArray();
 
         var primitive = new MeshPrimitive(vertices.ToArray(), indices.ToArray());
         var mesh = new Mesh([primitive]);
@@ -40,13 +41,16 @@ public class SimpleLoader
         return new LoadResult
         {
             texture = texture,
-            scene = scene
+            scene = scene,
+            texture2 = texture2
         };
     }
 
     public class LoadResult
     {
         public byte[] texture { get; set; }
+        public byte[] texture2 { get; set; }
+
         public Scene scene { get; set; }
     }
 }
