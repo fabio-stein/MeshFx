@@ -15,10 +15,6 @@ public abstract class AppStateManager
     IntPtr displayHandle = IntPtr.Zero;
     
     InputHandler inputHandler = new();
-    SharedBuffer<Matrix4x4> cameraBuffer = new(1);
-    SharedBuffer<Matrix4x4> instanceMatrixBuffer = new(2);
-
-    public Material? DefaultMaterial = null;
     
     public InputStatus Input => inputHandler.InputStatus;
     
@@ -68,10 +64,34 @@ public abstract class AppStateManager
     public void Render()
     {
         var cameraProjection = World.CurrentCamera.ViewProjection;
-        var matrix = World.CurrentScene.Nodes.First().LocalMatrix;
-        var mesh = World.CurrentScene.Nodes.First().Mesh.Primitives.First();
+        var renderCommands = GetMeshesToRender(World.CurrentScene);
+        Gpu.Render(cameraProjection, renderCommands.ToArray());
+    }
+    
+    private List<MeshRenderCommand> GetMeshesToRender(Scene scene)
+    {
+        var renderCommands = new List<MeshRenderCommand>();
+        foreach (var node in scene.Nodes)
+        {
+            GetMeshesToRender(node, renderCommands);
+        }
+        return renderCommands;
+    }
+    
+    private void GetMeshesToRender(Node node, List<MeshRenderCommand> renderCommands)
+    {
+        if (node.Mesh != null)
+        {
+            renderCommands.Add(new MeshRenderCommand(node.Mesh.Primitives.First(), [node.LocalMatrix]));
+        }
         
-        Gpu.Render(cameraProjection, [matrix], mesh, DefaultMaterial);
+        if (node.Children != null)
+        {
+            foreach (var child in node.Children)
+            {
+                GetMeshesToRender(child, renderCommands);
+            }
+        }
     }
     
     public abstract void Start();

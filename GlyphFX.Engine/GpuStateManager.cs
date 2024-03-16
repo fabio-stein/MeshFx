@@ -45,24 +45,24 @@ public class GpuStateManager
         _materialPtrs.Add(material, pointer);
     }
     
-    public static Material TestMaterial { get; set; }
-    
-    public void Render(Matrix4x4 cameraViewProjection, Matrix4x4[] instanceMatrix, MeshPrimitive mesh, Material material)
+    public void Render(Matrix4x4 cameraViewProjection, MeshRenderCommand[] renderCommands)
     {
-        var meshPtr = GetOrLoadMeshPtr(mesh);
-        var materialPtr = GetOrLoadMaterialPtr(material);
-        
         var cameraBuffer = new SharedBuffer<Matrix4x4>([cameraViewProjection]);
-        var instanceMatrixBuffer = new SharedBuffer<Matrix4x4>(instanceMatrix);
-        
-        var material2 = GetOrLoadMaterialPtr(TestMaterial);
-        instanceMatrix[0] *= Matrix4x4.CreateTranslation(-1f, 0, 0);
-        var instanceMatrixBuffer2 = new SharedBuffer<Matrix4x4>(instanceMatrix);
-        
         Wgpu.render(_wgpuState, (ptr) =>
         {
-            Wgpu.draw(_wgpuState, ptr, cameraBuffer.Pointer, instanceMatrixBuffer.Pointer, meshPtr, materialPtr);
-            Wgpu.draw(_wgpuState, ptr, cameraBuffer.Pointer, instanceMatrixBuffer2.Pointer, meshPtr, material2);
+            foreach (var renderCommand in renderCommands)
+            {
+                var instanceMatrixBuffer = new SharedBuffer<Matrix4x4>(renderCommand.InstanceMatrix);
+                var meshPtr = GetOrLoadMeshPtr(renderCommand.Mesh);
+                var materialPtr = GetOrLoadMaterialPtr(renderCommand.Mesh.Material);
+                Wgpu.draw(_wgpuState, ptr, cameraBuffer.Pointer, instanceMatrixBuffer.Pointer, meshPtr, materialPtr);
+            }
         });
     }
+}
+
+public class MeshRenderCommand(MeshPrimitive mesh, Matrix4x4[] instanceMatrix)
+{
+    public MeshPrimitive Mesh = mesh;
+    public Matrix4x4[] InstanceMatrix = instanceMatrix;
 }

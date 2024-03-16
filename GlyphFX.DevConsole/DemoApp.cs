@@ -10,10 +10,9 @@ public class DemoApp : AppStateManager
 
     public override void Start()
     {
-        var data = SimpleLoader.LoadGltf();
-        DefaultMaterial = new Material(data.texture);
-        GpuStateManager.TestMaterial = new Material(data.texture2);
-        World.LoadScene(data.scene);
+        var scene = new Scene();
+        SimpleLoader.LoadGltf(scene);
+        World.LoadScene(scene);
     }
 
     public override void Update()
@@ -22,9 +21,11 @@ public class DemoApp : AppStateManager
         {
             movement += speed * (Input.Button == 0 ? -1 : 1);
         }
-        
-        var node = World.CurrentScene.Nodes.First();
-        node.Transform.Rotation *= Quaternion.CreateFromAxisAngle(Vector3.UnitY, movement);
-        node.Transform.Scale = Vector3.One * 30;
+
+        foreach (var node in World.CurrentScene.Nodes)
+        {
+            node.Transform.Rotation *= Quaternion.CreateFromAxisAngle(Vector3.UnitY, movement);
+            node.Transform.Scale = Vector3.One * 30;
+        }
     }
 }

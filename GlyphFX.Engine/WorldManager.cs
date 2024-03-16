@@ -22,9 +22,9 @@ public class WorldManager
     }
 }
 
-public class Scene(Node[] nodes)
+public class Scene(List<Node>? nodes = null)
 {
-    public Node[] Nodes { get; private set; } = nodes;
+    public List<Node> Nodes { get; private set; } = nodes ?? new List<Node>();
 }
 
 public class Node(Node[]? children, Mesh? mesh, Matrix4x4? baseMatrix = null, Node.NodeTransform? transform = null)
@@ -48,11 +48,11 @@ public class Mesh(MeshPrimitive[] primitives)
     public MeshPrimitive[] Primitives { get; private set; } = primitives;
 }
 
-public class MeshPrimitive(Vertex[] vertices, UInt32[] indices)
+public class MeshPrimitive(Vertex[] vertices, UInt32[] indices, Material material)
 {
     public readonly Vertex[] Vertices = vertices;
     public readonly UInt32[] Indices = indices;
-    //private Material _material; //TODO
+    public readonly Material Material = material;
 }
 
 public class Material(byte[] textureData)

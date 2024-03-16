@@ -1,5 +1,6 @@
 using GlyphFX.Engine;
 using SharpGLTF.Schema2;
+using Material = GlyphFX.Engine.Material;
 using Mesh = GlyphFX.Engine.Mesh;
 using MeshPrimitive = GlyphFX.Engine.MeshPrimitive;
 using Node = GlyphFX.Engine.Node;
@@ -9,48 +10,46 @@ namespace GlyphFX.DevConsole;
 
 public class SimpleLoader
 {
-    public static LoadResult LoadGltf()
+    public static void LoadGltf(Scene scene)
     {
         var model = ModelRoot.Load("model.glb");
-        var position = model.LogicalMeshes.First().Primitives.First().GetVertexAccessor("POSITION").AsVector3Array().ToList();
-        var normal = model.LogicalMeshes.First().Primitives.First().GetVertexAccessor("NORMAL").AsVector3Array().ToList();
-        var texCoord = model.LogicalMeshes.First().Primitives.First().GetVertexAccessor("TEXCOORD_0").AsVector2Array().ToList();
-        
-        var vertices = new List<Vertex>();
-        var indices = new List<UInt32>();
-        for (int i = 0; i < position.Count; i++)
+
+        foreach(var modelMesh in model.LogicalMeshes)
+        foreach (var modelPrimitive in modelMesh.Primitives)
         {
-            var posMap = new Vec3(position[i].X, position[i].Y, position[i].Z);
-            var texMap = new Vec2(texCoord[i].X, texCoord[i].Y);
-            var normMap = new Vec3(normal[i].X, normal[i].Y, normal[i].Z);
-            vertices.Add(new Vertex(posMap, texMap, normMap));
+            try
+            {
+                var position = modelPrimitive.GetVertexAccessor("POSITION").AsVector3Array().ToList();
+                var normal = modelPrimitive.GetVertexAccessor("NORMAL").AsVector3Array().ToList();
+                var texCoord = modelPrimitive.GetVertexAccessor("TEXCOORD_0").AsVector2Array().ToList();
+
+                var vertices = new List<Vertex>();
+                var indices = new List<UInt32>();
+                for (int i = 0; i < position.Count; i++)
+                {
+                    var posMap = new Vec3(position[i].X, position[i].Y, position[i].Z);
+                    var texMap = new Vec2(texCoord[i].X, texCoord[i].Y);
+                    var normMap = new Vec3(normal[i].X, normal[i].Y, normal[i].Z);
+                    vertices.Add(new Vertex(posMap, texMap, normMap));
+                }
+
+                indices.AddRange(modelPrimitive.IndexAccessor.AsIndicesArray());
+
+                var textureData = modelPrimitive.Material.FindChannel("BaseColor").Value.Texture.PrimaryImage.Content
+                    .Content.ToArray();
+
+                var material = new Material(textureData);
+
+                var primitive = new MeshPrimitive(vertices.ToArray(), indices.ToArray(), material);
+                var mesh = new Mesh([primitive]);
+                var node = new Node(null, mesh);
+
+                scene.Nodes.Add(node);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
-
-        indices.AddRange(model.LogicalNodes.First().Mesh.Primitives.First().IndexAccessor.AsIndicesArray()
-            .Select(i => (UInt32)i)
-            .ToList());
-
-        var texture = model.LogicalTextures[1].PrimaryImage.Content.Content.ToArray();
-        var texture2 = model.LogicalTextures[0].PrimaryImage.Content.Content.ToArray();
-
-        var primitive = new MeshPrimitive(vertices.ToArray(), indices.ToArray());
-        var mesh = new Mesh([primitive]);
-        var node = new Node(null, mesh);
-        var scene = new Scene([node]);
-        
-        return new LoadResult
-        {
-            texture = texture,
-            scene = scene,
-            texture2 = texture2
-        };
-    }
-
-    public class LoadResult
-    {
-        public byte[] texture { get; set; }
-        public byte[] texture2 { get; set; }
-
-        public Scene scene { get; set; }
     }
 }
