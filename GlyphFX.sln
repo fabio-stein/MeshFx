@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GlyphFX.WebGpu", "GlyphFX.W
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GlyphFX.Engine", "GlyphFX.Engine\GlyphFX.Engine.csproj", "{BEF1FC22-F893-4CE9-93E4-AF052EB02A93}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GlyphFX.DemoWeb", "GlyphFX.DemoWeb\GlyphFX.DemoWeb.csproj", "{37B990A6-6999-4D41-9ACC-D556322794F7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{BEF1FC22-F893-4CE9-93E4-AF052EB02A93}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BEF1FC22-F893-4CE9-93E4-AF052EB02A93}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BEF1FC22-F893-4CE9-93E4-AF052EB02A93}.Release|Any CPU.Build.0 = Release|Any CPU
+		{37B990A6-6999-4D41-9ACC-D556322794F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{37B990A6-6999-4D41-9ACC-D556322794F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{37B990A6-6999-4D41-9ACC-D556322794F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{37B990A6-6999-4D41-9ACC-D556322794F7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
