@@ -1861,8 +1861,10 @@ name = "web_wrapper"
 version = "0.1.0"
 dependencies = [
  "wasm-bindgen",
+ "wasm-bindgen-futures",
  "web-sys",
  "wgpu",
+ "wgpu_wrapper",
  "winit",
 ]
 
@@ -1982,7 +1984,9 @@ dependencies = [
  "env_logger",
  "futures",
  "image",
+ "wasm-bindgen-futures",
  "wgpu",
+ "winit",
 ]
 
 [[package]]

@@ -1,11 +1,11 @@
 mod texture;
 pub mod model;
-mod material;
+pub mod material;
 
 use std::borrow::Cow;
 use std::ffi::c_void;
 use std::mem;
-use wgpu::{Adapter, BindGroup, BindGroupLayout, Buffer, Device, Instance, PipelineLayout, Queue, RenderPass, RenderPipeline, ShaderModule, Surface, SurfaceConfiguration, SurfaceTargetUnsafe, VertexBufferLayout};
+use wgpu::{Adapter, BindGroup, BindGroupLayout, Buffer, Device, Instance, PipelineLayout, Queue, RenderPass, RenderPipeline, ShaderModule, Surface, SurfaceConfiguration, SurfaceTargetUnsafe, VertexBufferLayout, web_sys};
 use wgpu::rwh::{RawDisplayHandle, RawWindowHandle};
 use wgpu::util::DeviceExt;
 use crate::material::Material;
@@ -46,18 +46,22 @@ pub struct State {
 }
 
 #[no_mangle]
-pub extern "C" fn init_state(display_handle: RawDisplayHandle, window_handle: RawWindowHandle) -> *mut State {
+pub extern "C" fn init_state(display_handle: RawDisplayHandle, window_handle: RawWindowHandle) -> *mut State{
     futures::executor::block_on(init_async(display_handle, window_handle))
 }
 
-async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHandle) -> *mut State {
-    env_logger::init();
-
+pub async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHandle) -> *mut State {
+    //env_logger::init();
+    web_sys::console::log_1(&"STEP 1".to_string().into());
     let width = 1600;
     let height = 1200;
     let predefined_buffer_size = 5000;
 
+    web_sys::console::log_1(&"STEP 2".to_string().into());
+
     let instance = Instance::default();
+
+    web_sys::console::log_1(&"STEP 3".to_string().into());
 
     let surface = unsafe {
         let raw_handle = SurfaceTargetUnsafe::RawHandle {
@@ -68,6 +72,8 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
         instance.create_surface_unsafe(raw_handle)
             .expect("Failed to create surface")
     };
+
+    web_sys::console::log_1(&"STEP 4".to_string().into());
 
     let adapter = instance
         .request_adapter(&wgpu::RequestAdapterOptions {
@@ -317,7 +323,7 @@ async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHa
     Box::into_raw(state)
 }
 
-type RenderCallback = extern "C" fn(*const RenderPass<'_>);
+pub type RenderCallback = extern "C" fn(*const RenderPass<'_>);
 
 #[no_mangle]
 pub extern "C" fn render(state: &mut State, render_callback: RenderCallback){

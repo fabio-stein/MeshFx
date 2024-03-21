@@ -10,9 +10,11 @@ wgpu = "0.19.3"
 env_logger = "0.11.2"
 futures = "0.3.30"
 bytemuck = { version = "1.14.3", features = [ "derive" ] }
+winit = "0.29.15"#TODO REMOVE
 
 #START For image loading
 anyhow = "1.0.80"
+wasm-bindgen-futures = "0.4.42"
 [dependencies.image]
 version = "0.25.0"
 default-features = false

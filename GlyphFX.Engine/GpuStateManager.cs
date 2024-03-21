@@ -26,7 +26,7 @@ public class GpuStateManager
     {
         var vertexBuffer = new SharedBuffer<Vertex>(mesh.Vertices);
         var indexBuffer = new SharedBuffer<uint>(mesh.Indices);
-        var pointer = Wgpu.load_mesh(_wgpuState, vertexBuffer.Pointer, vertexBuffer.Count, indexBuffer.Pointer, indexBuffer.Count);
+        var pointer = Wgpu.load_mesh(_wgpuState, vertexBuffer.Pointer, vertexBuffer.ByteCount, indexBuffer.Pointer, indexBuffer.ByteCount);
         vertexBuffer.Dispose();
         indexBuffer.Dispose();
         _meshPtrs.Add(mesh, pointer);

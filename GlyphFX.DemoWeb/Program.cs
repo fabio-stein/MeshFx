@@ -1,44 +1,47 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.JavaScript;
+using System.Threading;
+using System.Threading.Tasks;
+using GlyphFX.DemoWeb;
+using GlyphFX.Engine;
 
 Console.WriteLine("Hello, Browserxxxxxx!");
-var sum = MyClass.simsum(1, 2);
-Console.WriteLine($".NET sum: {sum}");
 
-int ptrInt = MyClass.GetAddr().ToInt32();
-Console.WriteLine($"ptrInt: {ptrInt}");
-
-Console.WriteLine($"SimpleString: {MyClass.SimpleString()}");
+MyClass.APP.World.SetCamera(new Camera());
+MyClass.APP.Start();
+MyClass.APP.Update();
 
 public partial class MyClass
 {
-    static MyClass.DemoData data = new MyClass.DemoData { val1 = 1, val2 = 2 };
-    static GCHandle handle = GCHandle.Alloc(data, GCHandleType.Pinned);
-    static IntPtr addr = handle.AddrOfPinnedObject();
-    public struct DemoData
-    {
-        public int val1 { get; set; }
-        public int val2 { get; set; }
-    }
+    public static DemoApp APP = new DemoApp();
     
     [JSExport]
-    internal static IntPtr GetAddr()
+    internal static void SimpleLog()
     {
-        return addr;
+        Console.WriteLine("Hello js from .NET");
     }
-    
-    [JSExport]
-    internal static void ShowData(IntPtr addr)
-    {
-        var data = Marshal.PtrToStructure<DemoData>(addr);
-        Console.WriteLine($"val1: {data.val1}, val2: {data.val2}");
-    }
-    
-    [JSImport("globalThis.rust.simsum")]
-    internal static partial int simsum(int a, int b);
 
     [JSImport("globalThis.rust.simple_string")]
     internal static partial String SimpleString();
+    
+    [JSImport("globalThis.rust.simple_log")]
+    internal static partial String RustSimpleLog();
 
+    [JSExport]
+    internal static void RenderNet()
+    {
+        Console.WriteLine("RenderNet");
+        APP.Update();
+        APP.Render();
+        
+        
+        var vertex = new Vec3(1, 2, 3);
+        var vertexBytes = MemoryMarshal.AsBytes(new Span<Vec3>(new Vec3[] { vertex }));
+        var data = vertexBytes.ToArray();
+        RenderRust(data);
+    }
+    
+    [JSImport("globalThis.rust.renderrust")]
+    internal static partial void RenderRust(byte[] data);
 }

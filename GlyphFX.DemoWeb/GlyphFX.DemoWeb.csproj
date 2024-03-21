@@ -3,4 +3,16 @@
         <TargetFramework>net8.0</TargetFramework>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\GlyphFX.Engine\GlyphFX.Engine.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+      <PackageReference Include="SharpGLTF.Core" Version="1.0.0-alpha0031" />
+    </ItemGroup>
+    <ItemGroup>
+      <None Remove="model.glb" />
+      <EmbeddedResource Include="model.glb">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </EmbeddedResource>
+    </ItemGroup>
 </Project>
