@@ -1,0 +1,11 @@
+{
+    "wasmHostProperties": {
+        "webServerPort":"8099",
+        "perHostConfig": [
+            {
+                "name": "browser",
+                "host": "browser"
+            }
+        ]
+    }
+}

@@ -1,0 +1,18 @@
+syntax = "proto3";
+package GlyphFX.Common.Native;
+
+message GetPersonRequest {
+   string Name = 1;
+}
+
+message GetPersonResponse {
+   string Email = 1;
+}
+
+message GetDotnetRequest {
+   string Name = 1;
+}
+
+message GetDotnetResponse {
+   string Email = 1;
+}
