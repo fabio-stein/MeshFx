@@ -7,6 +7,7 @@
       <sourceFolder url="file://$MODULE_DIR$/wgpu_wrapper/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/winit_wrapper/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/web_wrapper/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/glyphfx-native/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />

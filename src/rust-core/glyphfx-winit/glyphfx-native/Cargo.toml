@@ -1,0 +1,24 @@
+[package]
+name = "glyphfx-native"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+winit = "0.29.15"
+bytes = "1.5.0"
+prost = "0.12.3"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+console_error_panic_hook = "0.1.7"
+wasm-bindgen = "0.2.92"
+wasm-bindgen-futures = "0.4.42"
+web-sys = { version = "0.3.69", features = [
+    "HtmlCanvasElement",
+    "console",
+]}
+
+[build-dependencies]
+prost-build = "0.12.3"
+
+[lib]
+crate-type = ["cdylib"]
