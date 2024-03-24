@@ -3,6 +3,7 @@ use std::sync::{Arc, Mutex};
 use log::info;
 use winit::event::{Event, WindowEvent};
 use winit::event_loop::EventLoop;
+use winit::keyboard::{KeyCode, PhysicalKey};
 use winit::window::Window;
 use crate::bridge::glyphfx_native::*;
 use crate::graphics::renderer::init_renderer;
@@ -60,7 +61,14 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
                 match event {
                     WindowEvent::KeyboardInput { event, .. } => {
                         info!("Key pressed: {:?}", event.physical_key);
-                        init_renderer();
+                        //init_renderer();
+
+                        let keycode_str = format!("{:?}", event.physical_key);
+
+                        let request = AppEventRequest {
+                            name: keycode_str,
+                        };
+                        crate::bridge::handle_native::<AppEventRequest, AppEventResponse>(NativeRequestCode::AppEvent, request);
                     },
                     WindowEvent::MouseInput { state, button, .. } => {
                     },

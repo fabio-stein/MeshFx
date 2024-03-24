@@ -4,5 +4,5 @@ namespace GlyphFX.Common.Interfaces;
 
 public interface IWindowManager
 {
-    public void MainLoop(IEventCallback eventCallback);
+    public void RunLoop(IWindowEventHandler windowEventHandler);
 }

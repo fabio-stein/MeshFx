@@ -9,6 +9,9 @@ wgpu = "0.19.3"
 bytes = "1.5.0"
 prost = "0.12.3"
 log = "0.4.21"
+bytemuck = { version = "1.14.3", features = [ "derive" ] }
+image = "0.25.0"
+anyhow = "1.0.80"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 env_logger = "0.11.3"

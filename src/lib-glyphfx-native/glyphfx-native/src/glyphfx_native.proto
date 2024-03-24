@@ -1,6 +1,11 @@
 syntax = "proto3";
 package glyphfx_native;
 
+message AppEventRequest {
+   string Name = 1;
+}
+message AppEventResponse {
+}
 message GetDotnetRequest {
    string Name = 1;
 }
@@ -13,7 +18,21 @@ message GetRustRequest {
 message GetRustResponse {
    string Email = 1;
 }
+enum NativeRequestCode {
+   ZERO = 0; // proto3 requires a zero value as the first item (it can be named anything)
+   GET_RUST = 1;
+   RUN_MAIN_LOOP = 2;
+   GET_DOTNET = 1000;
+   APP_EVENT = 1001;
+}
 message RunMainLoopRequest {
 }
 message RunMainLoopResponse {
+}
+message Vector3 {
+}
+message Vertex {
+   Vector3 Position = 1;
+   Vector3 TextureCoords = 2;
+   Vector3 Normal = 3;
 }

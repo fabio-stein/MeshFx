@@ -2,6 +2,7 @@ use std::ffi::c_void;
 use std::io::Cursor;
 use prost::Message;
 use std::fmt::Debug;
+use log::info;
 use glyphfx_native::*;
 use crate::window::run_main_loop;
 
@@ -82,21 +83,22 @@ fn handle_request(request: GetRustRequest) -> GetRustResponse {
     }
 }
 
-fn handle_native<TRequest: Message + Debug + Default, TResponse: Message + Debug + Default>(request: TRequest) -> TResponse {
+pub(crate) fn handle_native<TRequest: Message + Debug + Default, TResponse: Message + Debug + Default>(code: NativeRequestCode, request: TRequest) -> TResponse {
     let encoded = encode(request).into_boxed_slice();
     let len = encoded.len();
     let ptr = encoded.as_ptr();
-    let response = unsafe { NATIVE_HANDLER.unwrap()(1000, ptr, len) };
+    let response = unsafe { NATIVE_HANDLER.unwrap()(code as i32, ptr, len) };
 
     let response_bytes = unsafe { std::slice::from_raw_parts(response.ptr as *const u8, response.size as usize) };
     decode::<TResponse>(response_bytes)
 }
 
 fn get_dotnet(name: &str) -> String{
+    info!("Requesting dotnet email for: {}", name);
     let request = GetDotnetRequest {
         name: name.to_string(),
     };
-    let response = handle_native::<GetDotnetRequest, GetDotnetResponse>(request);
+    let response = handle_native::<GetDotnetRequest, GetDotnetResponse>(NativeRequestCode::GetDotnet, request);
     response.email
 }
 

@@ -9,6 +9,7 @@ public static class NativeRequestCodeHelper
             NativeRequestCode.RUN_MAIN_LOOP => typeof(RunMainLoopRequest),
             NativeRequestCode.GET_RUST => typeof(GetRustRequest),
             NativeRequestCode.GET_DOTNET => typeof(GetDotnetRequest),
+            NativeRequestCode.APP_EVENT => typeof(AppEventRequest),
             _ => throw new InvalidOperationException($"Unknown request code {code}")
         };
     }
