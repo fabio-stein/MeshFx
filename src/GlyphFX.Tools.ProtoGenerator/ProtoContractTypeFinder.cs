@@ -3,7 +3,7 @@ using ProtoBuf;
 
 namespace GlyphFX.Tools.ProtoGenerator;
 
-public class ProtoContractTypeFinder
+public static class ProtoContractTypeFinder
 {
     public static List<Type> FindTypesWithProtoContractAttribute(Assembly assembly)
     {

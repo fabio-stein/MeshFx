@@ -13,5 +13,16 @@ options.Package = "glyphfx_native";
 
 var proto = Serializer.GetProto(options);
 
-File.WriteAllText("glyphfx_native.proto", proto);
-Console.WriteLine("File written to glyphfx_native.proto");
+var path = "../../../../lib-glyphfx-native/glyphfx-native/src/glyphfx_native.proto";
+var fullPath = Path.GetFullPath(path);
+Console.WriteLine("Checking for existing model at:");
+Console.WriteLine(fullPath);
+
+if (!File.Exists(path))
+{
+    Console.WriteLine("File not found, maybe you are running this from the wrong directory?");
+    return;
+}
+
+File.WriteAllText(fullPath, proto);
+Console.WriteLine("File updated!");
