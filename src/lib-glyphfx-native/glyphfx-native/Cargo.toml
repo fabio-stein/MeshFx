@@ -5,12 +5,14 @@ edition = "2021"
 
 [dependencies]
 winit = "0.29.15"
+wgpu = "0.19.3"
 bytes = "1.5.0"
 prost = "0.12.3"
 log = "0.4.21"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 env_logger = "0.11.3"
+pollster = "0.3.0"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_log = "1.0.0"

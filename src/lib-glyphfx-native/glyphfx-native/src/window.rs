@@ -1,10 +1,14 @@
+use std::panic;
+use std::sync::{Arc, Mutex};
+use log::info;
 use winit::event::{Event, WindowEvent};
 use winit::event_loop::EventLoop;
 use winit::window::Window;
 use crate::bridge::glyphfx_native::*;
+use crate::graphics::renderer::init_renderer;
 
 pub fn run_main_loop(request: RunMainLoopRequest) -> RunMainLoopResponse {
-    println!("Received request for main loop: {:?}", request);
+    info!("Received request for main loop: {:?}", request);
     run_loop();
     RunMainLoopResponse {}
 }
@@ -29,21 +33,34 @@ fn run_loop() {
         builder = builder.with_canvas(Some(canvas));
     }
 
-    let _window = builder.build(&event_loop).unwrap();
+    let window = builder.build(&event_loop).unwrap();
 
-    let _ = event_loop.run(move |event, target| {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        pollster::block_on(run(event_loop, window));
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
+        wasm_bindgen_futures::spawn_local(run(event_loop, window));
+    }
+}
+
+pub static mut GLOBAL_WINDOW: Option<Window> = None;
+
+async fn run(event_loop: EventLoop<()>, window: Window) {
+    unsafe {
+        GLOBAL_WINDOW = Some(window);
+    }
+
+    event_loop.run(move |event, target| {
         match event {
             Event::Resumed => {
             },
             Event::WindowEvent { event, .. } => {
                 match event {
                     WindowEvent::KeyboardInput { event, .. } => {
-                        println!("Key pressed: {:?}", event.physical_key);
-
-                        #[cfg(target_arch = "wasm32")]{
-                            web_sys::console::log_1(&format!("Key pressed: {:?}", event.physical_key).into());
-                        }
-
+                        info!("Key pressed: {:?}", event.physical_key);
+                        init_renderer();
                     },
                     WindowEvent::MouseInput { state, button, .. } => {
                     },
@@ -56,5 +73,5 @@ fn run_loop() {
             },
             _ => {}
         }
-    });
+    }).unwrap();
 }

@@ -14,9 +14,9 @@ extern "C" {
 
 #[wasm_bindgen(start)]
 pub fn initialize() {
-    bridge::set_native_handler(send_message);
     panic::set_hook(Box::new(console_error_panic_hook::hook));
     console_log::init_with_level(Level::Debug).expect("could not initialize logger");
+    bridge::set_native_handler(send_message);
     info!("Initialized wasm module");
 }
 
