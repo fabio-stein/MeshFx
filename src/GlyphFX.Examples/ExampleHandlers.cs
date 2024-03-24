@@ -14,7 +14,7 @@ public class ExampleHandlers
 
     public void RunExample()
     {
-        var request = new GetPersonRequest()
+        var request = new GetRustRequest()
         {
             Name = "net"
         };

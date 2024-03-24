@@ -1,6 +1,7 @@
-﻿using GlyphFX.Desktop;
-using GlyphFX.Examples;
+﻿using GlyphFX.Core;
+using GlyphFX.Desktop;
 
 var bridge = new DesktopNativeRequestBridge();
-var exampleApp = new ExampleHandlers(bridge);
-exampleApp.RunExample();
+
+var windowManager = new WindowManager(bridge);
+windowManager.RunLoop();

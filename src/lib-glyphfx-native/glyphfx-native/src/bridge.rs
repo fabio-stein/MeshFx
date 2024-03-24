@@ -2,14 +2,11 @@ use std::ffi::c_void;
 use std::io::Cursor;
 use prost::Message;
 use std::fmt::Debug;
-use GlyphFX::Common::Native::*;
+use glyphfx_native::*;
+use crate::window::run_main_loop;
 
-pub mod GlyphFX {
-    pub mod Common {
-        pub mod Native {
-            include!(concat!(env!("OUT_DIR"), "/glyph_fx.common.native.rs"));
-        }
-    }
+pub mod glyphfx_native {
+    include!(concat!(env!("OUT_DIR"), "/glyphfx_native.rs"));
 }
 
 pub type NativeHandle = extern "C" fn(code: i32, message_bytes: *const u8, message_size: usize) -> NativeBuffer;
@@ -31,8 +28,9 @@ pub extern "C" fn process_message(code: i32, message_bytes: *const u8, message_s
     let encoded_buf = unsafe { std::slice::from_raw_parts(message_bytes, message_size) };
 
     let response_bytes = match code {
-        1 => execute::<GetPersonRequest, GetPersonResponse, _>(encoded_buf, handle_request),
-        _ => panic!("Unknown message code: {}", code),
+        1 => execute::<GetRustRequest, GetRustResponse, _>(encoded_buf, handle_request),
+        2 => execute::<RunMainLoopRequest, RunMainLoopResponse, _>(encoded_buf, run_main_loop),
+        _ => panic!("Unknown message codex: {}", code),
     };
 
     let size = response_bytes.len() as i32;
@@ -67,9 +65,9 @@ fn encode<T: Message>(message: T) -> Vec<u8> {
     buf
 }
 
-fn handle_request(request: GetPersonRequest) -> GetPersonResponse {
+fn handle_request(request: GetRustRequest) -> GetRustResponse {
     let dotnet = get_dotnet(request.name.as_str());
-    GetPersonResponse {
+    GetRustResponse {
         email: request.name + "@rust" + &dotnet,
     }
 }

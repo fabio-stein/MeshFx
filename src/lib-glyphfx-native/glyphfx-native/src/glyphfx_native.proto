@@ -1,0 +1,19 @@
+syntax = "proto3";
+package glyphfx_native;
+
+message GetDotnetRequest {
+   string Name = 1;
+}
+message GetDotnetResponse {
+   string Email = 1;
+}
+message GetRustRequest {
+   string Name = 1;
+}
+message GetRustResponse {
+   string Email = 1;
+}
+message RunMainLoopRequest {
+}
+message RunMainLoopResponse {
+}

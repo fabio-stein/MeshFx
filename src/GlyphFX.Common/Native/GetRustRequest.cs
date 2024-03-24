@@ -3,16 +3,16 @@ using ProtoBuf;
 namespace GlyphFX.Common.Native;
 
 [ProtoContract]
-public class GetPersonRequest : INativeRequest<GetPersonResponse>
+public class GetRustRequest : INativeRequest<GetRustResponse>
 {
     [ProtoMember(1)]
     public string Name { get; set; }
     
-    public NativeRequestCode Code => NativeRequestCode.GET_PERSON;
+    public NativeRequestCode Code => NativeRequestCode.GET_RUST;
 }
 
 [ProtoContract]
-public class GetPersonResponse
+public class GetRustResponse
 {
     [ProtoMember(1)]
     public string Email { get; set; }

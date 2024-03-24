@@ -2,7 +2,8 @@ namespace GlyphFX.Common.Native;
 
 public enum NativeRequestCode
 {
-    GET_PERSON = 1,
+    GET_RUST = 1,
+    RUN_MAIN_LOOP = 2,
     
     GET_DOTNET = 1000
 }

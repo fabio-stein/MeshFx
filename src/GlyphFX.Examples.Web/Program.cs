@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices.JavaScript;
+using GlyphFX.Core;
 using GlyphFX.Examples;
 using GlyphFX.Examples.Web;
 
@@ -17,6 +18,13 @@ public partial class NativeNetJs
     public static void Hello()
     {
         _handler.RunExample();
+    }
+    
+    [JSExport]
+    public static void HelloWindow()
+    {
+        var manager = new WindowManager(_bridge);
+        manager.RunLoop();
     }
 
     [JSExport]

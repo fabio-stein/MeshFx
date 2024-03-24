@@ -6,7 +6,8 @@ public static class NativeRequestCodeHelper
     {
         return code switch
         {
-            NativeRequestCode.GET_PERSON => typeof(GetPersonRequest),
+            NativeRequestCode.RUN_MAIN_LOOP => typeof(RunMainLoopRequest),
+            NativeRequestCode.GET_RUST => typeof(GetRustRequest),
             NativeRequestCode.GET_DOTNET => typeof(GetDotnetRequest),
             _ => throw new InvalidOperationException($"Unknown request code {code}")
         };

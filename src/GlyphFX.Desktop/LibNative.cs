@@ -5,7 +5,7 @@ namespace GlyphFX.Desktop;
 
 public class LibNative
 {
-    private const string LibName = "libglyphfx_native";
+    private const string LibName = "lib/libglyphfx_native";
     
     [DllImport(LibName)]
     public static extern NativeBuffer process_message(NativeRequestCode code, byte[] data, int size);
