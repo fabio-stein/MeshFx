@@ -7,8 +7,13 @@ edition = "2021"
 winit = "0.29.15"
 bytes = "1.5.0"
 prost = "0.12.3"
+log = "0.4.21"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+env_logger = "0.11.3"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
+console_log = "1.0.0"
 console_error_panic_hook = "0.1.7"
 wasm-bindgen = "0.2.92"
 wasm-bindgen-futures = "0.4.42"

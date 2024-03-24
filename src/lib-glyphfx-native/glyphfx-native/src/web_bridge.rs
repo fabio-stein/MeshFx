@@ -1,6 +1,9 @@
 use std::ffi::c_void;
 use std::panic;
+
+use log::{info, Level};
 use wasm_bindgen::prelude::wasm_bindgen;
+
 use crate::bridge;
 use crate::bridge::NativeBuffer;
 
@@ -13,6 +16,8 @@ extern "C" {
 pub fn initialize() {
     bridge::set_native_handler(send_message);
     panic::set_hook(Box::new(console_error_panic_hook::hook));
+    console_log::init_with_level(Level::Debug).expect("could not initialize logger");
+    info!("Initialized wasm module");
 }
 
 #[wasm_bindgen]

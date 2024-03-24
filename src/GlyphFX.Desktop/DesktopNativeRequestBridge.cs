@@ -7,6 +7,7 @@ public class DesktopNativeRequestBridge : AbstractNativeRequestBridge
 {
     public DesktopNativeRequestBridge()
     {
+        LibNative.init_desktop();
         LibNative.set_native_handler(HandleNativeInternal);
     }
     

@@ -18,6 +18,16 @@ pub struct NativeBuffer {
     pub size: i32,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
+#[no_mangle]
+pub extern "C" fn init_desktop() {
+    use env_logger::Env;
+    use env_logger::Builder;
+    use env_logger::Target;
+    let mut builder = Builder::from_env(Env::default().default_filter_or("info"));
+    builder.init();
+}
+
 #[no_mangle]
 pub extern "C" fn set_native_handler(handler: NativeHandle) {
     unsafe { NATIVE_HANDLER = Some(handler); }

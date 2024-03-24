@@ -8,6 +8,9 @@ public class LibNative
     private const string LibName = "lib/libglyphfx_native";
     
     [DllImport(LibName)]
+    public static extern void init_desktop();
+    
+    [DllImport(LibName)]
     public static extern NativeBuffer process_message(NativeRequestCode code, byte[] data, int size);
 
     [DllImport(LibName)]
