@@ -35,6 +35,14 @@ pub fn load_material(request: LoadMaterialRequest) -> LoadMaterialResponse {
     LoadMaterialResponse {}
 }
 
+pub fn begin_render(request: BeginRenderRequest) -> BeginRenderResponse {
+    info!("Received request to begin render");
+    let state = unsafe { GLOBAL_STATE.as_ref().unwrap() };
+    //handle_native::<RenderWaitingRequest, RenderWaitingResponse>(NativeRequestCode::RenderWaiting, RenderWaitingRequest {});
+    leg_renderer::render(state, |d|{});
+    BeginRenderResponse {}
+}
+
 async fn init_renderer_async(){
     let state = leg_renderer::init_async(get_global_window().unwrap()).await;
     unsafe {

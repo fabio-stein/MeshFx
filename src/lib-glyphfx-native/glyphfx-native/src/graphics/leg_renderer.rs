@@ -308,10 +308,10 @@ pub async fn init_async(window: &'static Window) -> State {
     }
 }
 
-pub type RenderCallback = extern "C" fn(*const RenderPass<'_>);
+pub type RenderCallback = fn(*const RenderPass<'_>);
 
 #[no_mangle]
-pub extern "C" fn render(state: &mut State, render_callback: RenderCallback){
+pub extern "C" fn render(state: &State, render_callback: RenderCallback){
     let frame = state.surface
         .get_current_texture()
         .expect("Failed to acquire next swap chain texture");

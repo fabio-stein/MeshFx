@@ -40,6 +40,7 @@ public class Renderer : IRenderer
             return;
         LoadMesh(scene);
         LoadMaterial(scene);
+        _bridge.Send(new BeginRenderRequest());
         loadTest = true;
     }
 
