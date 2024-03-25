@@ -29,9 +29,9 @@ public class GltfLoader
                 var indices = new List<UInt32>();
                 for (int i = 0; i < position.Count; i++)
                 {
-                    var posMap = new Vector3(position[i].X, position[i].Y, position[i].Z);
-                    var texMap = new Vector2(texCoord[i].X, texCoord[i].Y);
-                    var normMap = new Vector3(normal[i].X, normal[i].Y, normal[i].Z);
+                    var posMap = new Vec3(position[i].X, position[i].Y, position[i].Z);
+                    var texMap = new Vec2(texCoord[i].X, texCoord[i].Y);
+                    var normMap = new Vec3(normal[i].X, normal[i].Y, normal[i].Z);
                     vertices.Add(new Vertex(posMap, texMap, normMap));
                 }
 

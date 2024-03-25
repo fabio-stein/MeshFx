@@ -15,12 +15,7 @@ public partial class NativeNetJs
     [JSExport]
     public static void RunExample()
     {
-        var windowManager = new WindowManager(_bridge);
-
-        new GlyphAppBuilder()
-            .WithWindowManager(windowManager)
-            .WithWindowEventHandler(new WindowEventHandler())
-            .Build()
+        new ExampleScene(_bridge)
             .Run();
     }
 

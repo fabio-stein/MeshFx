@@ -18,21 +18,55 @@ message GetRustRequest {
 message GetRustResponse {
    string Email = 1;
 }
+message InitRendererRequest {
+}
+message InitRendererResponse {
+}
+message LoadMeshRequest {
+   repeated Vertex Vertices = 1;
+   repeated uint32 Indices = 2 [packed = false];
+}
+message LoadMeshResponse {
+}
 enum NativeRequestCode {
    ZERO = 0; // proto3 requires a zero value as the first item (it can be named anything)
    GET_RUST = 1;
    RUN_MAIN_LOOP = 2;
+   LOAD_MESH = 3;
+   INIT_RENDERER = 4;
    GET_DOTNET = 1000;
    APP_EVENT = 1001;
+   WINDOW_EVENT_RESUME = 1002;
+   RENDERER_READY = 1003;
+   WINDOW_REDRAW = 1004;
+}
+message RendererReadyRequest {
+}
+message RendererReadyResponse {
 }
 message RunMainLoopRequest {
 }
 message RunMainLoopResponse {
 }
-message Vector3 {
+message Vec2 {
+   float X = 1;
+   float Y = 2;
+}
+message Vec3 {
+   float X = 1;
+   float Y = 2;
+   float Z = 3;
 }
 message Vertex {
-   Vector3 Position = 1;
-   Vector3 TextureCoords = 2;
-   Vector3 Normal = 3;
+   Vec3 Position = 1;
+   Vec2 TextureCoords = 2;
+   Vec3 Normal = 3;
+}
+message WindowRedrawRequest {
+}
+message WindowRedrawResponse {
+}
+message WindowResumeEventRequest {
+}
+message WindowResumeEventResponse {
 }

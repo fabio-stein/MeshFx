@@ -6,7 +6,8 @@ use winit::event_loop::EventLoop;
 use winit::keyboard::{KeyCode, PhysicalKey};
 use winit::window::Window;
 use crate::bridge::glyphfx_native::*;
-use crate::graphics::renderer::init_renderer;
+use crate::bridge::handle_native;
+use crate::graphics::renderer::{get_global_window, init_renderer};
 
 pub fn run_main_loop(request: RunMainLoopRequest) -> RunMainLoopResponse {
     info!("Received request for main loop: {:?}", request);
@@ -56,25 +57,25 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
     event_loop.run(move |event, target| {
         match event {
             Event::Resumed => {
-                init_renderer();
+                handle_native::<WindowResumeEventRequest, WindowResumeEventResponse>(NativeRequestCode::WindowEventResume, WindowResumeEventRequest {});
             },
             Event::WindowEvent { event, .. } => {
                 match event {
                     WindowEvent::KeyboardInput { event, .. } => {
-                        //init_renderer();
-
                         let keycode_str = format!("{:?}", event.physical_key);
 
                         let request = AppEventRequest {
                             name: keycode_str,
                         };
-                        crate::bridge::handle_native::<AppEventRequest, AppEventResponse>(NativeRequestCode::AppEvent, request);
+                        handle_native::<AppEventRequest, AppEventResponse>(NativeRequestCode::AppEvent, request);
                     },
                     WindowEvent::MouseInput { state, button, .. } => {
                     },
                     WindowEvent::CursorMoved { position, .. } => {
                     },
                     WindowEvent::RedrawRequested => {
+                        handle_native::<WindowRedrawRequest, WindowRedrawResponse>(NativeRequestCode::WindowRedraw, WindowRedrawRequest {});
+                        get_global_window().unwrap().request_redraw();
                     },
                     _ => {},
                 };

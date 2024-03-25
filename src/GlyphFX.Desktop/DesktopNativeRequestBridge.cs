@@ -38,7 +38,7 @@ public class DesktopNativeRequestBridge : AbstractNativeRequestBridge
         var resultPtr = LibNative.process_message(code, requestBytes, requestBytes.Length);
         var resultBytes = new byte[resultPtr.Size];
         Marshal.Copy(resultPtr.Data, resultBytes, 0, resultPtr.Size);
-        if(requestBytes.Length > 0)
+        if(resultBytes.Length > 0)
             Marshal.FreeHGlobal(resultPtr.Data);
         return resultBytes;
     }

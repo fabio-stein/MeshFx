@@ -23,6 +23,7 @@ public class ExampleScene
         new GlyphAppBuilder()
             .WithWindowManager(windowManager)
             .WithWindowEventHandler(new WindowEventHandler())
+            .WithRenderer(new Renderer(_bridge))
             .WithScene(scene)
             .Build()
             .Run();
