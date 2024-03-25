@@ -56,6 +56,7 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
     event_loop.run(move |event, target| {
         match event {
             Event::Resumed => {
+                init_renderer();
             },
             Event::WindowEvent { event, .. } => {
                 match event {

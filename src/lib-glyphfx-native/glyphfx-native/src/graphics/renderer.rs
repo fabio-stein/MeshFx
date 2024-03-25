@@ -1,5 +1,6 @@
 use log::info;
 use winit::window::Window;
+use crate::graphics::leg_renderer;
 use crate::window;
 
 pub fn init_renderer() {
@@ -14,16 +15,7 @@ pub fn init_renderer() {
 }
 
 async fn init_renderer_async(){
-    let instance = wgpu::Instance::default();
-    let surface = instance.create_surface(get_global_window().unwrap()).unwrap();
-    let adapter = instance.request_adapter(&wgpu::RequestAdapterOptions {
-        power_preference: wgpu::PowerPreference::default(),
-        force_fallback_adapter: false,
-        compatible_surface: Some(&surface),
-    }).await.unwrap();
-
-    info!("Adapter: {:?}", adapter.get_info());
-
+    leg_renderer::init_async(get_global_window().unwrap()).await;
 }
 
 pub fn get_global_window() -> Option<&'static Window> {

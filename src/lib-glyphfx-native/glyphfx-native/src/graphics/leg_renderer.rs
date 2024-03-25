@@ -1,9 +1,11 @@
 use std::borrow::Cow;
 use std::ffi::c_void;
 use std::mem;
+use log::info;
 use wgpu::{Adapter, BindGroup, BindGroupLayout, Buffer, Device, Instance, PipelineLayout, Queue, RenderPass, RenderPipeline, ShaderModule, Surface, SurfaceConfiguration, SurfaceTargetUnsafe, VertexBufferLayout};
 use wgpu::rwh::{RawDisplayHandle, RawWindowHandle};
 use wgpu::util::DeviceExt;
+use winit::window::Window;
 use crate::graphics::material::Material;
 use crate::graphics::model::{Mesh, Vertex};
 use crate::graphics::texture;
@@ -42,22 +44,19 @@ pub struct State {
     counter: u32,
 }
 
-pub async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWindowHandle) -> *mut State {
+pub async fn init_async(window: &'static Window) -> *mut State {
     let width = 1600;
     let height = 1200;
     let predefined_buffer_size = 5000;
 
+    info!("Initializing renderer");
+
     let instance = Instance::default();
 
-    let surface = unsafe {
-        let raw_handle = SurfaceTargetUnsafe::RawHandle {
-            raw_display_handle: display_handle,
-            raw_window_handle: window_handle,
-        };
+    let surface = instance.create_surface(window)
+        .expect("Failed to create surface");
 
-        instance.create_surface_unsafe(raw_handle)
-            .expect("Failed to create surface")
-    };
+    info!("Surface created");
 
     let adapter = instance
         .request_adapter(&wgpu::RequestAdapterOptions {
@@ -68,6 +67,8 @@ pub async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWind
         })
         .await
         .expect("Failed to find an appropriate adapter");
+
+    info!("Adapter found: {:?}", adapter.get_info());
 
     // Create the logical device and command queue
     let (device, queue) = adapter
@@ -83,6 +84,8 @@ pub async fn init_async(display_handle: RawDisplayHandle, window_handle: RawWind
         )
         .await
         .expect("Failed to create device");
+
+    info!("Device created");
 
     // Load the shaders from disk
     let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
