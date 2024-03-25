@@ -39,7 +39,18 @@ public class Renderer : IRenderer
         if (loadTest)
             return;
         LoadMesh(scene);
+        LoadMaterial(scene);
         loadTest = true;
+    }
+
+    private void LoadMaterial(Scene scene)
+    {
+        var meshPrimitive = scene.Nodes.First().Mesh.Primitives.First();
+        var bytes = meshPrimitive.Material.TextureData;
+        _bridge.Send(new LoadMaterialRequest()
+        {
+            TextureData = bytes
+        });
     }
 
     private void LoadMesh(Scene scene)

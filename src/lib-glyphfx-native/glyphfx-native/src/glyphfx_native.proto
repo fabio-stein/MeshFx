@@ -6,6 +6,10 @@ message AppEventRequest {
 }
 message AppEventResponse {
 }
+message BeginRenderRequest {
+}
+message BeginRenderResponse {
+}
 message GetDotnetRequest {
    string Name = 1;
 }
@@ -22,6 +26,11 @@ message InitRendererRequest {
 }
 message InitRendererResponse {
 }
+message LoadMaterialRequest {
+   bytes TextureData = 1;
+}
+message LoadMaterialResponse {
+}
 message LoadMeshRequest {
    bytes Vertices = 1;
    repeated uint32 Indices = 2 [packed = false];
@@ -34,11 +43,23 @@ enum NativeRequestCode {
    RUN_MAIN_LOOP = 2;
    LOAD_MESH = 3;
    INIT_RENDERER = 4;
+   LOAD_MATERIAL = 5;
+   BEGIN_RENDER = 6;
    GET_DOTNET = 1000;
    APP_EVENT = 1001;
    WINDOW_EVENT_RESUME = 1002;
    RENDERER_READY = 1003;
    WINDOW_REDRAW = 1004;
+   RENDER_WAITING = 1005;
+   RENDER_DRAW = 1006;
+}
+message RenderDrawRequest {
+}
+message RenderDrawResponse {
+}
+message RenderWaitingRequest {
+}
+message RenderWaitingResponse {
 }
 message RendererReadyRequest {
 }

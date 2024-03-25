@@ -4,6 +4,7 @@ use crate::graphics::{leg_renderer, model};
 use crate::window;
 use crate::bridge::glyphfx_native::*;
 use crate::bridge::handle_native;
+use crate::graphics::material::load_texture;
 
 static mut GLOBAL_STATE: Option<leg_renderer::State> = None;
 
@@ -25,6 +26,13 @@ pub fn load_mesh(request: LoadMeshRequest) -> LoadMeshResponse {
     let mesh = model::load_mesh(state, request.vertices, request.indices.to_vec());
     info!("Loaded mesh indices: {}", mesh.num_indices);
     LoadMeshResponse {}
+}
+
+pub fn load_material(request: LoadMaterialRequest) -> LoadMaterialResponse {
+    info!("Received request to load material");
+    let state = unsafe { GLOBAL_STATE.as_ref().unwrap() };
+    let material = load_texture(state, request.texture_data);
+    LoadMaterialResponse {}
 }
 
 async fn init_renderer_async(){

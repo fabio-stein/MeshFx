@@ -4,7 +4,7 @@ use prost::Message;
 use std::fmt::Debug;
 use log::info;
 use glyphfx_native::*;
-use crate::graphics::renderer::{init_renderer, load_mesh};
+use crate::graphics::renderer::{init_renderer, load_material, load_mesh};
 use crate::window::run_main_loop;
 
 pub mod glyphfx_native {
@@ -44,6 +44,7 @@ pub extern "C" fn process_message(code: i32, message_bytes: *const u8, message_s
         2 => execute::<RunMainLoopRequest, RunMainLoopResponse, _>(encoded_buf, run_main_loop),
         3 => execute::<LoadMeshRequest, LoadMeshResponse, _>(encoded_buf, load_mesh),
         4 => execute::<InitRendererRequest, InitRendererResponse, _>(encoded_buf, init_renderer),
+        5 => execute::<LoadMaterialRequest, LoadMaterialResponse, _>(encoded_buf, load_material),
         _ => panic!("Unknown message code: {}", code),
     };
 

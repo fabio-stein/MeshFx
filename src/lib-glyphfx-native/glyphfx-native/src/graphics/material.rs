@@ -9,9 +9,8 @@ pub struct Material {
 }
 
 #[no_mangle]
-pub extern "C" fn load_texture(state: &mut State, texture_ptr: *const u8, data_size: u32) -> *mut Material {
-    let diffuse_bytes = unsafe { std::slice::from_raw_parts(texture_ptr, data_size as usize) };
-    let diffuse_texture = texture::Texture::from_bytes(&state.device, &state.queue, diffuse_bytes, "texture.jpg").unwrap();
+pub extern "C" fn load_texture(state: &State, texture_data: Vec<u8>) -> Material {
+    let diffuse_texture = texture::Texture::from_bytes(&state.device, &state.queue, &texture_data, "texture.jpg").unwrap();
 
     let diffuse_bind_group = state.device.create_bind_group(
         &wgpu::BindGroupDescriptor {
@@ -30,11 +29,9 @@ pub extern "C" fn load_texture(state: &mut State, texture_ptr: *const u8, data_s
         }
     );
 
-    let material = Material {
+    Material {
         diffuse_texture,
         bind_group: diffuse_bind_group,
-    };
-
-    Box::into_raw(Box::new(material))
+    }
 }
 
