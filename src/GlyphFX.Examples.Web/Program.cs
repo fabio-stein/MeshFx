@@ -7,24 +7,21 @@ using GlyphFX.Examples.Web;
 Console.WriteLine("Hello, Browser!");
 
 NativeNetJs._bridge = new WebNativeRequestBridge();
-NativeNetJs._handler = new ExampleHandlers(NativeNetJs._bridge);
 
 public partial class NativeNetJs
 {
     public static WebNativeRequestBridge _bridge;
-    public static ExampleHandlers _handler;
     
     [JSExport]
-    public static void Hello()
+    public static void RunExample()
     {
-        _handler.RunExample();
-    }
-    
-    [JSExport]
-    public static void HelloWindow()
-    {
-        var manager = new WindowManager(_bridge);
-        manager.RunLoop();
+        var windowManager = new WindowManager(_bridge);
+
+        new GlyphAppBuilder()
+            .WithWindowManager(windowManager)
+            .WithWindowEventHandler(new WindowEventHandler())
+            .Build()
+            .Run();
     }
 
     [JSExport]
