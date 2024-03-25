@@ -23,7 +23,7 @@ message InitRendererRequest {
 message InitRendererResponse {
 }
 message LoadMeshRequest {
-   repeated Vertex Vertices = 1;
+   bytes Vertices = 1;
    repeated uint32 Indices = 2 [packed = false];
 }
 message LoadMeshResponse {

@@ -1,5 +1,7 @@
+using System.Runtime.CompilerServices;
 using GlyphFX.Common.Interfaces;
 using GlyphFX.Common.Native;
+using GlyphFX.Common.Native.Primitives;
 using GlyphFX.Common.Scenes;
 
 namespace GlyphFX.Core;
@@ -36,15 +38,28 @@ public class Renderer : IRenderer
     {
         if (loadTest)
             return;
+        LoadMesh(scene);
         
+        loadTest = true;
+    }
+
+    private void LoadMesh(Scene scene)
+    {
         var meshPrimitive = scene.Nodes.First().Mesh.Primitives.First();
+        var vertices = meshPrimitive.Vertices;
+        var size = Unsafe.SizeOf<Vertex>();
+        var bytes = new byte[size * vertices.Length];
+        for (var i = 0; i < vertices.Length; i++)
+        {
+            var vertex = vertices[i];
+            var offset = i * size;
+            Unsafe.WriteUnaligned(ref bytes[offset], vertex);
+        }
         var loadMeshRequest = new LoadMeshRequest
         {
-            Vertices = meshPrimitive.Vertices,
+            Vertices = bytes,
             Indices = meshPrimitive.Indices
         };
         _bridge.Send(loadMeshRequest);
-        
-        loadTest = true;
     }
 }

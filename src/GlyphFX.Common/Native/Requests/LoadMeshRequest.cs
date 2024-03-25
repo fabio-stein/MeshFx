@@ -7,7 +7,7 @@ namespace GlyphFX.Common.Native;
 public class LoadMeshRequest : INativeRequest<LoadMeshResponse>
 {
     [ProtoMember(1)]
-    public Vertex[] Vertices { get; set; }
+    public byte[] Vertices { get; set; }
     [ProtoMember(2)]
     public uint[] Indices { get; set; }
     

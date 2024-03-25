@@ -1,8 +1,10 @@
+using System.Runtime.InteropServices;
 using ProtoBuf;
 
 namespace GlyphFX.Common.Native.Primitives;
 
 [ProtoContract]
+[StructLayout(LayoutKind.Sequential)]
 public struct Vec3(float X, float Y, float Z)
 {
     [ProtoMember(1)]
@@ -14,6 +16,7 @@ public struct Vec3(float X, float Y, float Z)
 }
 
 [ProtoContract]
+[StructLayout(LayoutKind.Sequential)]
 public struct Vec2(float X, float Y)
 {
     [ProtoMember(1)]

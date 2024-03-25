@@ -1,9 +1,11 @@
 using System.Numerics;
+using System.Runtime.InteropServices;
 using ProtoBuf;
 
 namespace GlyphFX.Common.Native.Primitives;
 
 [ProtoContract]
+[StructLayout(LayoutKind.Sequential)]
 public struct Vertex(Vec3 position, Vec2 textureCoords, Vec3 normal)
 {
     [ProtoMember(1)]

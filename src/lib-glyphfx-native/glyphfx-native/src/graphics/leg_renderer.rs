@@ -7,8 +7,8 @@ use wgpu::rwh::{RawDisplayHandle, RawWindowHandle};
 use wgpu::util::DeviceExt;
 use winit::window::Window;
 use crate::graphics::material::Material;
-use crate::graphics::model::{Mesh, Vertex};
-use crate::graphics::texture;
+use crate::graphics::model::{Mesh};
+use crate::graphics::{model, texture};
 use crate::graphics::texture::Texture;
 
 #[repr(C)]
@@ -44,7 +44,7 @@ pub struct State {
     counter: u32,
 }
 
-pub async fn init_async(window: &'static Window) -> *mut State {
+pub async fn init_async(window: &'static Window) -> State {
     let width = 1600;
     let height = 1200;
     let predefined_buffer_size = 5000;
@@ -97,7 +97,7 @@ pub async fn init_async(window: &'static Window) -> *mut State {
     let swapchain_format = swapchain_capabilities.formats[0];
 
     let vertex_buffer_layout = VertexBufferLayout {
-        array_stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress,
+        array_stride: std::mem::size_of::<model::Vertex>() as wgpu::BufferAddress,
         step_mode: wgpu::VertexStepMode::Vertex,
         attributes: &[
             wgpu::VertexAttribute {
@@ -286,7 +286,7 @@ pub async fn init_async(window: &'static Window) -> *mut State {
         }
     );
 
-    let state = Box::new(State {
+    State {
         width,
         height,
         instance,
@@ -305,9 +305,7 @@ pub async fn init_async(window: &'static Window) -> *mut State {
         instance_buffer2,
         depth_texture,
         counter: 0,
-    });
-
-    Box::into_raw(state)
+    }
 }
 
 pub type RenderCallback = extern "C" fn(*const RenderPass<'_>);
