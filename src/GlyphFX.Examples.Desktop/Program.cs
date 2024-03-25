@@ -1,11 +1,6 @@
-﻿using GlyphFX.Core;
-using GlyphFX.Desktop;
+﻿using GlyphFX.Desktop;
+using GlyphFX.Examples;
 
 var bridge = new DesktopNativeRequestBridge();
-var windowManager = new WindowManager(bridge);
-
-new GlyphAppBuilder()
-    .WithWindowManager(windowManager)
-    .WithWindowEventHandler(new WindowEventHandler())
-    .Build()
+new ExampleScene(bridge)
     .Run();

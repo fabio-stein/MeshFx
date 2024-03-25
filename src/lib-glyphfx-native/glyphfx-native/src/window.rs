@@ -61,7 +61,6 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
             Event::WindowEvent { event, .. } => {
                 match event {
                     WindowEvent::KeyboardInput { event, .. } => {
-                        info!("Key pressed: {:?}", event.physical_key);
                         //init_renderer();
 
                         let keycode_str = format!("{:?}", event.physical_key);

@@ -10,4 +10,8 @@
         <ProjectReference Include="..\GlyphFX.Core\GlyphFX.Core.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <EmbeddedResource Include="model.glb" />
+    </ItemGroup>
+
 </Project>

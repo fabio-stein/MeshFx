@@ -8,6 +8,7 @@ public class GlyphAppBuilder
 {
     private IWindowManager _windowManager;
     private IWindowEventHandler _windowEventHandler;
+    private Scene _scene;
     
     public GlyphAppBuilder WithWindowManager(IWindowManager windowManager)
     {
@@ -21,6 +22,12 @@ public class GlyphAppBuilder
         return this;
     }
     
+    public GlyphAppBuilder WithScene(Scene scene)
+    {
+        _scene = scene;
+        return this;
+    }
+    
     public GlyphApp Build()
     {
         if (_windowManager == null)
@@ -28,6 +35,6 @@ public class GlyphAppBuilder
         if (_windowEventHandler == null)
             throw new InvalidOperationException("WindowEventHandler is required");
         
-        return new GlyphApp(_windowManager, _windowEventHandler);
+        return new GlyphApp(_windowManager, _windowEventHandler, _scene);
     }
 }

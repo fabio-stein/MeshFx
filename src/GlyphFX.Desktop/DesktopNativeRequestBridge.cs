@@ -5,10 +5,13 @@ namespace GlyphFX.Desktop;
 
 public class DesktopNativeRequestBridge : AbstractNativeRequestBridge
 {
+    //Keep reference to the delegate to prevent it from being garbage collected
+    LibNative.HandleNativeDelegate _handleNativeInternal;
+    
     public DesktopNativeRequestBridge()
     {
         LibNative.init_desktop();
-        LibNative.set_native_handler(HandleNativeInternal);
+        LibNative.set_native_handler(_handleNativeInternal = HandleNativeInternal);
     }
     
     LibNative.NativeBuffer HandleNativeInternal(NativeRequestCode code, IntPtr ptr, int size)
