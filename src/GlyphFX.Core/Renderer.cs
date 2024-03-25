@@ -39,7 +39,6 @@ public class Renderer : IRenderer
         if (loadTest)
             return;
         LoadMesh(scene);
-        
         loadTest = true;
     }
 

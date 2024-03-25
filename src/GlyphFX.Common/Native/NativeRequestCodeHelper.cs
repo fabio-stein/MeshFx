@@ -15,6 +15,10 @@ public static class NativeRequestCodeHelper
             NativeRequestCode.INIT_RENDERER => typeof(InitRendererRequest),
             NativeRequestCode.RENDERER_READY => typeof(RendererReadyRequest),
             NativeRequestCode.WINDOW_REDRAW => typeof(WindowRedrawRequest),
+            NativeRequestCode.LOAD_MATERIAL => typeof(LoadMaterialRequest),
+            NativeRequestCode.BEGIN_RENDER => typeof(BeginRenderRequest),
+            NativeRequestCode.RENDER_WAITING => typeof(RenderWaitingRequest),
+            NativeRequestCode.RENDER_DRAW => typeof(RenderDrawRequest),
             _ => throw new InvalidOperationException($"Unknown request code {code}")
         };
     }
