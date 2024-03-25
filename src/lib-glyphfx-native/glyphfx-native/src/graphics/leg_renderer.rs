@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use std::ffi::c_void;
 use std::mem;
 use log::info;
-use wgpu::{Adapter, BindGroup, BindGroupLayout, Buffer, Device, Instance, PipelineLayout, Queue, RenderPass, RenderPipeline, ShaderModule, Surface, SurfaceConfiguration, SurfaceTargetUnsafe, VertexBufferLayout};
+use wgpu::{Adapter, BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Instance, PipelineLayout, Queue, RenderPass, RenderPipeline, ShaderModule, Surface, SurfaceConfiguration, SurfaceTargetUnsafe, VertexBufferLayout};
 use wgpu::rwh::{RawDisplayHandle, RawWindowHandle};
 use wgpu::util::DeviceExt;
 use winit::window::Window;
@@ -308,7 +308,7 @@ pub async fn init_async(window: &'static Window) -> State {
     }
 }
 
-pub type RenderCallback = fn(*const RenderPass<'_>);
+pub type RenderCallback = fn(&'static mut wgpu::RenderPass<'static>);
 
 #[no_mangle]
 pub extern "C" fn render(state: &State, render_callback: RenderCallback){
@@ -348,8 +348,12 @@ pub extern "C" fn render(state: &State, render_callback: RenderCallback){
 
         rpass.set_pipeline(&state.render_pipeline);
 
-        let rpass_raw_pointer = &mut rpass as *mut wgpu::RenderPass<'_>;
-        render_callback(rpass_raw_pointer);
+        let devref = &mut rpass;
+        let devref2: &'static mut wgpu::RenderPass<'static> = unsafe { mem::transmute(devref) };
+
+        //transmute rpass using mem::transmute
+        //let temp_rpass: &mut wgpu::RenderPass<'static> = unsafe { mem::transmute(&rpass) };
+        render_callback(devref2);
     }
 
     state.queue.submit(Some(encoder.finish()));
@@ -362,26 +366,20 @@ pub extern "C" fn render(state: &State, render_callback: RenderCallback){
 // }
 
 #[no_mangle]
-pub extern "C" fn draw(state: &'static mut State, rpass: &'static mut wgpu::RenderPass<'static>, camera_uniform: *const f32, instances_single_matrix: *const f32, mesh: &'static mut Mesh, material: &'static mut Material) {
-    let camera_uniform = unsafe { std::slice::from_raw_parts(camera_uniform, 16) };
-    let instance_single_matrix = unsafe { std::slice::from_raw_parts(instances_single_matrix, 16) };
+pub extern "C" fn draw(state: &'static State, rpass: &mut wgpu::RenderPass<'static>, camera_uniform: Vec<f32>, instances_matrix: Vec<f32>, mesh: &'static Mesh, material: &'static Material) {
+    let instance_count = instances_matrix.len() / 16;
 
-    if(state.counter == 0) {
-        state.queue.write_buffer(&state.instance_buffer, 0, bytemuck::cast_slice(instance_single_matrix));
+    if(state.counter == 0) {//TODO different draws for different meshes
+        state.queue.write_buffer(&state.instance_buffer, 0, bytemuck::cast_slice(instances_matrix.as_slice()));
         rpass.set_vertex_buffer(1, state.instance_buffer.slice(..));
-        state.counter = 1;
-    }else{
-        state.queue.write_buffer(&state.instance_buffer2, 0, bytemuck::cast_slice(instance_single_matrix));
-        rpass.set_vertex_buffer(1, state.instance_buffer2.slice(..));
-        state.counter = 0;
     }
 
-    state.queue.write_buffer(&state.camera_buffer, 0, bytemuck::cast_slice(camera_uniform));
+    state.queue.write_buffer(&state.camera_buffer, 0, bytemuck::cast_slice(camera_uniform.as_slice()));
 
     rpass.set_bind_group(0, &material.bind_group, &[]);
     rpass.set_bind_group(1, &state.camera_bind_group, &[]);
     rpass.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
     rpass.set_index_buffer(mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
 
-    rpass.draw_indexed(0..mesh.num_indices, 0, 0..1);
+    rpass.draw_indexed(0..mesh.num_indices, 0, 0..instance_count as _);
 }

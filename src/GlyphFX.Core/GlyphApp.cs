@@ -41,6 +41,6 @@ public class GlyphApp
     
     private void OnRedraw(object? sender, WindowRedrawRequest e)
     {
-        //_renderer.RenderScene(_sceneManager.CurrentScene, _sceneManager.CurrentCamera);
+        _renderer.RenderScene(_sceneManager.CurrentScene, _sceneManager.CurrentCamera);
     }
 }

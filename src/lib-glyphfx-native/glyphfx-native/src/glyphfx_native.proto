@@ -45,15 +45,17 @@ enum NativeRequestCode {
    INIT_RENDERER = 4;
    LOAD_MATERIAL = 5;
    BEGIN_RENDER = 6;
+   RENDER_DRAW = 7;
    GET_DOTNET = 1000;
    APP_EVENT = 1001;
    WINDOW_EVENT_RESUME = 1002;
    RENDERER_READY = 1003;
    WINDOW_REDRAW = 1004;
    RENDER_WAITING = 1005;
-   RENDER_DRAW = 1006;
 }
 message RenderDrawRequest {
+   repeated float CameraViewProjection = 1 [packed = false];
+   repeated float InstanceMatrix = 2 [packed = false];
 }
 message RenderDrawResponse {
 }
