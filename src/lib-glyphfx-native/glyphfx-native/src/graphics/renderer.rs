@@ -65,7 +65,7 @@ pub fn render_draw(request: RenderDrawRequest) -> RenderDrawResponse {
     let rpass = unsafe { GLOBAL_RENDERPASS.as_mut().unwrap() };
     let mesh = unsafe { GLOBAL_MESH.as_ref().unwrap() };
     let material = unsafe { GLOBAL_MATERIAL.as_ref().unwrap() };
-    leg_renderer::draw(state, rpass, request.camera_view_projection, request.instance_matrix, mesh, material);
+    leg_renderer::draw(state, rpass, request.camera_view_projection, request.instance_matrix, request.instance_count, mesh, material);
     RenderDrawResponse {}
 }
 

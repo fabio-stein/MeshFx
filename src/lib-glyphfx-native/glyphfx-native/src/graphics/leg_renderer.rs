@@ -366,11 +366,10 @@ pub extern "C" fn render(state: &State, render_callback: RenderCallback){
 // }
 
 #[no_mangle]
-pub extern "C" fn draw(state: &'static State, rpass: &mut wgpu::RenderPass<'static>, camera_uniform: Vec<f32>, instances_matrix: Vec<f32>, mesh: &'static Mesh, material: &'static Material) {
-    let instance_count = instances_matrix.len() / 16;
+pub extern "C" fn draw(state: &'static State, rpass: &mut wgpu::RenderPass<'static>, camera_uniform: Vec<f32>, instances_matrix: Vec<u8>, instance_count: u32, mesh: &'static Mesh, material: &'static Material) {
 
     if(state.counter == 0) {//TODO different draws for different meshes
-        state.queue.write_buffer(&state.instance_buffer, 0, bytemuck::cast_slice(instances_matrix.as_slice()));
+        state.queue.write_buffer(&state.instance_buffer, 0, instances_matrix.as_slice());
         rpass.set_vertex_buffer(1, state.instance_buffer.slice(..));
     }
 

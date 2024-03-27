@@ -55,7 +55,8 @@ enum NativeRequestCode {
 }
 message RenderDrawRequest {
    repeated float CameraViewProjection = 1 [packed = false];
-   repeated float InstanceMatrix = 2 [packed = false];
+   bytes InstanceMatrix = 2;
+   uint32 InstanceCount = 3;
 }
 message RenderDrawResponse {
 }

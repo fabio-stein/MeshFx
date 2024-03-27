@@ -1,5 +1,6 @@
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using GlyphFX.Common.Interfaces;
 using GlyphFX.Common.Native;
 using GlyphFX.Common.Native.Primitives;
@@ -64,16 +65,14 @@ public class Renderer : IRenderer
             for (var i = 0; i < 16; i++)
                 cameraArray[i] = camera.ViewProjection[i / 4, i % 4];
 
-            rotation += 0.01f;
-            var rotationMatrix = Matrix4x4.CreateRotationY(this.rotation);
-            var instanceMatrix = Matrix4x4.Identity * Matrix4x4.CreateScale(30) * rotationMatrix;
-            var instanceMatrixArray = new float[16];
-            for (var i = 0; i < 16; i++)
-                instanceMatrixArray[i] = instanceMatrix[i / 4, i % 4];
+            var matrixList = new[]{Matrix4x4.Identity};
+            var byteArray = MemoryMarshal.Cast<Matrix4x4, byte>(matrixList.AsSpan()).ToArray();
+            
             _bridge.Send(new RenderDrawRequest()
             {
                 CameraViewProjection = cameraArray,
-                InstanceMatrix = instanceMatrixArray
+                InstanceMatrix = byteArray,
+                InstanceCount = (uint)matrixList.Length
             });
         };
         _bridge.Send(new BeginRenderRequest());
