@@ -8,6 +8,8 @@ Console.WriteLine("Hello, Browser!");
 
 NativeNetJs._bridge = new WebNativeRequestBridge();
 
+NativeNetJs.RunExample();
+
 public partial class NativeNetJs
 {
     public static WebNativeRequestBridge _bridge;

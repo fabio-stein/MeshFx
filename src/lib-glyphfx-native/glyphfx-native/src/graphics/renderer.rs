@@ -47,7 +47,6 @@ pub fn load_material(request: LoadMaterialRequest) -> LoadMaterialResponse {
 }
 
 pub fn begin_render(request: BeginRenderRequest) -> BeginRenderResponse {
-    info!("Received request to begin render");
     let state = unsafe { GLOBAL_STATE.as_ref().unwrap() };
     leg_renderer::render(state, |rpass|{
         unsafe {
@@ -62,7 +61,6 @@ pub fn begin_render(request: BeginRenderRequest) -> BeginRenderResponse {
 }
 
 pub fn render_draw(request: RenderDrawRequest) -> RenderDrawResponse {
-    info!("Received request to draw");
     let state = unsafe { GLOBAL_STATE.as_ref().unwrap() };
     let rpass = unsafe { GLOBAL_RENDERPASS.as_mut().unwrap() };
     let mesh = unsafe { GLOBAL_MESH.as_ref().unwrap() };
