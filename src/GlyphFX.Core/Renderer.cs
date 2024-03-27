@@ -13,7 +13,7 @@ public class Renderer : IRenderer
     private readonly INativeRequestBridge _bridge;
     private bool _isStarting = false;
     private bool _isReady = false;
-    private Action? CurrentDrawAction = null;
+    private Action? _currentDrawAction = null;
 
     public Renderer(INativeRequestBridge bridge)
     {
@@ -23,10 +23,10 @@ public class Renderer : IRenderer
 
     private void OnWaiting(RenderWaitingRequest request)
     {
-        if (CurrentDrawAction != null)
+        if (_currentDrawAction != null)
         {
-            CurrentDrawAction();
-            CurrentDrawAction = null;
+            _currentDrawAction();
+            _currentDrawAction = null;
         }
     }
 
@@ -59,7 +59,7 @@ public class Renderer : IRenderer
             loadTest = true;
         }
 
-        CurrentDrawAction = () =>
+        _currentDrawAction = () =>
         {
             var cameraArray = new float[16];
             for (var i = 0; i < 16; i++)
