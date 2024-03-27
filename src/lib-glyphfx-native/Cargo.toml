@@ -1,5 +1,4 @@
 [workspace]
 resolver = "2"
 
-members = [
-    "dev_console", "glyphfx-native", "web_wrapper", "wgpu_wrapper", "winit_wrapper"]
+members = ["glyphfx-native"]
