@@ -1,12 +1,10 @@
-use std::sync::{Arc, Mutex};
 use log::info;
 use winit::event::{Event, WindowEvent};
 use winit::event_loop::EventLoop;
-use winit::keyboard::{KeyCode, PhysicalKey};
 use winit::window::Window;
 use crate::bridge::glyphfx_native::*;
 use crate::bridge::handle_native;
-use crate::graphics::renderer::{get_global_window, init_renderer};
+use crate::graphics::renderer::{get_global_window};
 
 pub fn run_main_loop(request: RunMainLoopRequest) -> RunMainLoopResponse {
     info!("Received request for main loop: {:?}", request);
@@ -16,6 +14,7 @@ pub fn run_main_loop(request: RunMainLoopRequest) -> RunMainLoopResponse {
 
 fn run_loop() {
     let event_loop = EventLoop::new().unwrap();
+    #[allow(unused_mut)]
     let mut builder = winit::window::WindowBuilder::new();
 
     #[cfg(target_arch = "wasm32")]

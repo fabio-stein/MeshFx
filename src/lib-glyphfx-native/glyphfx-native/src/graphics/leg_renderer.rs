@@ -1,8 +1,7 @@
 use std::borrow::Cow;
-use std::ffi::c_void;
 use std::mem;
 use log::info;
-use wgpu::{Adapter, BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Instance, PipelineLayout, Queue, RenderPass, RenderPipeline, ShaderModule, Surface, SurfaceConfiguration, SurfaceTargetUnsafe, VertexBufferLayout};
+use wgpu::{Adapter, BindGroup, BindGroupLayout, Buffer, Device, Instance, PipelineLayout, Queue, RenderPass, RenderPipeline, ShaderModule, Surface, SurfaceConfiguration, VertexBufferLayout};
 use winit::window::Window;
 use crate::graphics::material::Material;
 use crate::graphics::model::{Mesh};
@@ -22,8 +21,6 @@ struct CameraUniform {
 }
 
 pub struct State {
-    width: u32,
-    height: u32,
     instance: Instance,
     surface: Surface<'static>,
     adapter: Adapter,
@@ -90,7 +87,7 @@ pub async fn init_async(window: &'static Window) -> State {
     let swapchain_format = swapchain_capabilities.formats[0];
 
     let vertex_buffer_layout = VertexBufferLayout {
-        array_stride: std::mem::size_of::<model::Vertex>() as wgpu::BufferAddress,
+        array_stride: mem::size_of::<model::Vertex>() as wgpu::BufferAddress,
         step_mode: wgpu::VertexStepMode::Vertex,
         attributes: &[
             wgpu::VertexAttribute {
@@ -154,7 +151,7 @@ pub async fn init_async(window: &'static Window) -> State {
         ],
     };
 
-    let mut config = surface
+    let config = surface
         .get_default_config(&adapter, width, height)
         .unwrap();
     surface.configure(&device, &config);
@@ -261,8 +258,6 @@ pub async fn init_async(window: &'static Window) -> State {
     });
 
     State {
-        width,
-        height,
         instance,
         surface,
         adapter,
