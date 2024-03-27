@@ -3,8 +3,6 @@ use std::ffi::c_void;
 use std::mem;
 use log::info;
 use wgpu::{Adapter, BindGroup, BindGroupLayout, Buffer, CommandEncoder, Device, Instance, PipelineLayout, Queue, RenderPass, RenderPipeline, ShaderModule, Surface, SurfaceConfiguration, SurfaceTargetUnsafe, VertexBufferLayout};
-use wgpu::rwh::{RawDisplayHandle, RawWindowHandle};
-use wgpu::util::DeviceExt;
 use winit::window::Window;
 use crate::graphics::material::Material;
 use crate::graphics::model::{Mesh};
@@ -39,20 +37,17 @@ pub struct State {
     camera_buffer: Buffer,
     camera_bind_group: BindGroup,
     instance_buffer: Buffer,
-    instance_buffer2: Buffer,
     depth_texture: Texture,
-    counter: u32,
 }
 
 pub async fn init_async(window: &'static Window) -> State {
     let width = 1600;
     let height = 1200;
-    let predefined_buffer_size = 5000;
+    let predefined_instance_buffer_size = 5000;
 
     info!("Initializing renderer");
 
     let instance = Instance::default();
-
     let surface = instance.create_surface(window)
         .expect("Failed to create surface");
 
@@ -62,7 +57,6 @@ pub async fn init_async(window: &'static Window) -> State {
         .request_adapter(&wgpu::RequestAdapterOptions {
             power_preference: wgpu::PowerPreference::default(),
             force_fallback_adapter: false,
-            // Request an adapter which can render to our surface
             compatible_surface: Some(&surface),
         })
         .await
@@ -87,7 +81,6 @@ pub async fn init_async(window: &'static Window) -> State {
 
     info!("Device created");
 
-    // Load the shaders from disk
     let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: None,
         source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(include_str!("shader.wgsl"))),
@@ -118,19 +111,10 @@ pub async fn init_async(window: &'static Window) -> State {
         ]
     };
 
-    let index_buffer = device.create_buffer(
-        &wgpu::BufferDescriptor {
-            label: None,
-            size: (predefined_buffer_size * std::mem::size_of::<u32>()) as wgpu::BufferAddress,
-            usage: wgpu::BufferUsages::INDEX | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        }
-    );
-
     let instance_buffer = device.create_buffer(
         &wgpu::BufferDescriptor {
             label: None,
-            size: (predefined_buffer_size * std::mem::size_of::<InstanceRaw>()) as wgpu::BufferAddress,
+            size: (predefined_instance_buffer_size * mem::size_of::<InstanceRaw>()) as wgpu::BufferAddress,
             usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         }
@@ -169,7 +153,6 @@ pub async fn init_async(window: &'static Window) -> State {
             },
         ],
     };
-
 
     let mut config = surface
         .get_default_config(&adapter, width, height)
@@ -277,15 +260,6 @@ pub async fn init_async(window: &'static Window) -> State {
         multiview: None,
     });
 
-    let instance_buffer2 = device.create_buffer(
-        &wgpu::BufferDescriptor {
-            label: None,
-            size: (predefined_buffer_size * std::mem::size_of::<InstanceRaw>()) as wgpu::BufferAddress,
-            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        }
-    );
-
     State {
         width,
         height,
@@ -302,16 +276,13 @@ pub async fn init_async(window: &'static Window) -> State {
         camera_buffer,
         camera_bind_group,
         instance_buffer,
-        instance_buffer2,
         depth_texture,
-        counter: 0,
     }
 }
 
-pub type RenderCallback = fn(&'static mut wgpu::RenderPass<'static>);
+pub type RenderCallback = fn(&'static mut RenderPass<'static>);
 
-#[no_mangle]
-pub extern "C" fn render(state: &State, render_callback: RenderCallback){
+pub fn render(state: &State, render_callback: RenderCallback){
     let frame = state.surface
         .get_current_texture()
         .expect("Failed to acquire next swap chain texture");
@@ -348,27 +319,19 @@ pub extern "C" fn render(state: &State, render_callback: RenderCallback){
 
         rpass.set_pipeline(&state.render_pipeline);
 
-        let devref = &mut rpass;
-        let devref2: &'static mut wgpu::RenderPass<'static> = unsafe { mem::transmute(devref) };
+        let rpass_ref = &mut rpass;
+        let rpass_shared_ref: &'static mut RenderPass<'static> = unsafe { mem::transmute(rpass_ref) };
 
-        //transmute rpass using mem::transmute
-        //let temp_rpass: &mut wgpu::RenderPass<'static> = unsafe { mem::transmute(&rpass) };
-        render_callback(devref2);
+        render_callback(rpass_shared_ref);
     }
 
     state.queue.submit(Some(encoder.finish()));
     frame.present();
 }
 
-// pub struct RenderCommand<'a>{
-//     pub state: &'a mut State,
-//     pub rpass: wgpu::RenderPass<'a>,
-// }
+pub fn draw(state: &'static State, rpass: &mut wgpu::RenderPass<'static>, camera_uniform: Vec<f32>, instances_matrix: Vec<u8>, instance_count: u32, mesh: &'static Mesh, material: &'static Material) {
 
-#[no_mangle]
-pub extern "C" fn draw(state: &'static State, rpass: &mut wgpu::RenderPass<'static>, camera_uniform: Vec<f32>, instances_matrix: Vec<u8>, instance_count: u32, mesh: &'static Mesh, material: &'static Material) {
-
-    if(state.counter == 0) {//TODO different draws for different meshes
+    if true {//TODO different draws for different meshes
         state.queue.write_buffer(&state.instance_buffer, 0, instances_matrix.as_slice());
         rpass.set_vertex_buffer(1, state.instance_buffer.slice(..));
     }

@@ -1,9 +1,12 @@
 use std::ffi::c_void;
-use std::io::Cursor;
-use prost::Message;
 use std::fmt::Debug;
+use std::io::Cursor;
+
 use log::info;
+use prost::Message;
+
 use glyphfx_native::*;
+
 use crate::graphics::renderer::{begin_render, init_renderer, load_material, load_mesh, render_draw};
 use crate::window::run_main_loop;
 
@@ -25,7 +28,6 @@ pub struct NativeBuffer {
 pub extern "C" fn init_desktop() {
     use env_logger::Env;
     use env_logger::Builder;
-    use env_logger::Target;
     let mut builder = Builder::from_env(Env::default().default_filter_or("info"));
     builder.init();
 }

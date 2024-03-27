@@ -16,8 +16,7 @@ pub struct Mesh {
     pub num_indices: u32,
 }
 
-#[no_mangle]
-pub extern "C" fn load_mesh(state: &State, vertices: Vec<u8>, indices: Vec<u32>) -> Mesh {
+pub fn load_mesh(state: &State, vertices: Vec<u8>, indices: Vec<u32>) -> Mesh {
     let index_count = indices.len() as u32;
     let indices = indices.as_slice();
 

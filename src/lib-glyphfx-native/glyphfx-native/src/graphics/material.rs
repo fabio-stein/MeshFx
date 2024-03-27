@@ -8,8 +8,7 @@ pub struct Material {
     pub bind_group: wgpu::BindGroup,
 }
 
-#[no_mangle]
-pub extern "C" fn load_texture(state: &State, texture_data: Vec<u8>) -> Material {
+pub fn load_texture(state: &State, texture_data: Vec<u8>) -> Material {
     let diffuse_texture = texture::Texture::from_bytes(&state.device, &state.queue, &texture_data, "texture.jpg").unwrap();
 
     let diffuse_bind_group = state.device.create_bind_group(

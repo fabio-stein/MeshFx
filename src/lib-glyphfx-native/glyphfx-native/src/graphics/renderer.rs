@@ -12,7 +12,7 @@ static mut GLOBAL_RENDERPASS: Option<&mut RenderPass> = None;
 static mut GLOBAL_MESH: Option<model::Mesh> = None;
 static mut GLOBAL_MATERIAL: Option<material::Material> = None;
 
-pub fn init_renderer(request: InitRendererRequest) -> InitRendererResponse {
+pub fn init_renderer(_request: InitRendererRequest) -> InitRendererResponse {
     #[cfg(target_arch = "wasm32")]
     {
         wasm_bindgen_futures::spawn_local(init_renderer_async());
@@ -46,7 +46,7 @@ pub fn load_material(request: LoadMaterialRequest) -> LoadMaterialResponse {
     LoadMaterialResponse {}
 }
 
-pub fn begin_render(request: BeginRenderRequest) -> BeginRenderResponse {
+pub fn begin_render(_request: BeginRenderRequest) -> BeginRenderResponse {
     let state = unsafe { GLOBAL_STATE.as_ref().unwrap() };
     leg_renderer::render(state, |rpass|{
         unsafe {

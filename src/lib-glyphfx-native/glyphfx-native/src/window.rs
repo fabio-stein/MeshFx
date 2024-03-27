@@ -1,4 +1,3 @@
-use std::panic;
 use std::sync::{Arc, Mutex};
 use log::info;
 use winit::event::{Event, WindowEvent};
@@ -54,7 +53,7 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
         GLOBAL_WINDOW = Some(window);
     }
 
-    event_loop.run(move |event, target| {
+    event_loop.run(move |event, _target| {
         match event {
             Event::Resumed => {
                 handle_native::<WindowResumeEventRequest, WindowResumeEventResponse>(NativeRequestCode::WindowEventResume, WindowResumeEventRequest {});
@@ -69,9 +68,9 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
                         };
                         handle_native::<AppEventRequest, AppEventResponse>(NativeRequestCode::AppEvent, request);
                     },
-                    WindowEvent::MouseInput { state, button, .. } => {
+                    WindowEvent::MouseInput { state: _state, button: _button, .. } => {
                     },
-                    WindowEvent::CursorMoved { position, .. } => {
+                    WindowEvent::CursorMoved { position: _position, .. } => {
                     },
                     WindowEvent::RedrawRequested => {
                         handle_native::<WindowRedrawRequest, WindowRedrawResponse>(NativeRequestCode::WindowRedraw, WindowRedrawRequest {});
