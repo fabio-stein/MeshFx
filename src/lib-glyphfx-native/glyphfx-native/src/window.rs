@@ -15,7 +15,10 @@ pub fn run_main_loop(request: RunMainLoopRequest) -> RunMainLoopResponse {
 fn run_loop() {
     let event_loop = EventLoop::new().unwrap();
     #[allow(unused_mut)]
-    let mut builder = winit::window::WindowBuilder::new();
+    let mut builder = winit::window::WindowBuilder::new()
+        .with_title("GlyphFX")
+        .with_maximized(true)
+        ;
 
     #[cfg(target_arch = "wasm32")]
     {

@@ -38,8 +38,6 @@ pub struct State {
 }
 
 pub async fn init_async(window: &'static Window) -> State {
-    let width = 1600;
-    let height = 1200;
     let predefined_instance_buffer_size = 5000;
 
     info!("Initializing renderer");
@@ -150,6 +148,9 @@ pub async fn init_async(window: &'static Window) -> State {
             },
         ],
     };
+
+    let width = window.inner_size().width;
+    let height = window.inner_size().height;
 
     let config = surface
         .get_default_config(&adapter, width, height)
