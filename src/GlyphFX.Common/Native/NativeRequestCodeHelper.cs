@@ -19,6 +19,7 @@ public static class NativeRequestCodeHelper
             NativeRequestCode.BEGIN_RENDER => typeof(BeginRenderRequest),
             NativeRequestCode.RENDER_WAITING => typeof(RenderWaitingRequest),
             NativeRequestCode.RENDER_DRAW => typeof(RenderDrawRequest),
+            NativeRequestCode.WINDOW_KEYBOARD_EVENT => typeof(WindowKeyboardEventRequest),
             _ => throw new InvalidOperationException($"Unknown request code {code}")
         };
     }

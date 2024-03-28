@@ -19,6 +19,7 @@ public enum NativeRequestCode
     RENDERER_READY = 1003,
     WINDOW_REDRAW = 1004,
     RENDER_WAITING = 1005,
+    WINDOW_KEYBOARD_EVENT = 1006,
 }
 
 public static class NativeRequestCodeExtensions

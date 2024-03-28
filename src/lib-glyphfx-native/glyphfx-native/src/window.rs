@@ -1,7 +1,9 @@
 use log::info;
 use winit::event::{Event, WindowEvent};
 use winit::event_loop::EventLoop;
+use winit::keyboard::PhysicalKey;
 use winit::window::Window;
+use crate::bridge;
 use crate::bridge::glyphfx_native::*;
 use crate::bridge::handle_native;
 use crate::graphics::renderer::{get_global_window};
@@ -17,7 +19,7 @@ fn run_loop() {
     #[allow(unused_mut)]
     let mut builder = winit::window::WindowBuilder::new()
         .with_title("GlyphFX")
-        .with_maximized(true)
+        //.with_maximized(true)
         ;
 
     #[cfg(target_arch = "wasm32")]
@@ -63,18 +65,20 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
             Event::WindowEvent { event, .. } => {
                 match event {
                     WindowEvent::KeyboardInput { event, .. } => {
-                        let keycode_str = format!("{:?}", event.physical_key);
-
-                        let request = AppEventRequest {
-                            name: keycode_str,
-                        };
-                        handle_native::<AppEventRequest, AppEventResponse>(NativeRequestCode::AppEvent, request);
+                        if let Some(code) = KeyCode::from_winit_event(event.physical_key) {
+                            let request = WindowKeyboardEventRequest {
+                                key_code: code.into(),
+                                is_pressed: event.state == winit::event::ElementState::Pressed,
+                            };
+                            handle_native::<WindowKeyboardEventRequest, WindowKeyboardEventResponse>(NativeRequestCode::WindowKeyboardEvent, request);
+                        }
                     },
                     WindowEvent::MouseInput { state: _state, button: _button, .. } => {
                     },
                     WindowEvent::CursorMoved { position: _position, .. } => {
                     },
                     WindowEvent::RedrawRequested => {
+                        let code = bridge::glyphfx_native::KeyCode::F1;
                         handle_native::<WindowRedrawRequest, WindowRedrawResponse>(NativeRequestCode::WindowRedraw, WindowRedrawRequest {});
                         get_global_window().unwrap().request_redraw();
                     },
