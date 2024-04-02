@@ -43,6 +43,13 @@ pub async fn init_async(window: &'static Window) -> State {
     info!("Initializing renderer");
 
     let instance = Instance::default();
+
+    let backends = wgpu::Backends::all();
+    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+        backends,
+        ..Default::default()
+    });
+
     let surface = instance.create_surface(window)
         .expect("Failed to create surface");
 
@@ -149,10 +156,10 @@ pub async fn init_async(window: &'static Window) -> State {
         ],
     };
 
-    let width = window.inner_size().width;
-    let height = window.inner_size().height;
+    let width = window.inner_size().width.max(1);
+    let height = window.inner_size().height.max(1);
 
-    let config = surface
+    let mut config = surface
         .get_default_config(&adapter, width, height)
         .unwrap();
     surface.configure(&device, &config);
@@ -274,6 +281,15 @@ pub async fn init_async(window: &'static Window) -> State {
         instance_buffer,
         depth_texture,
     }
+}
+
+pub fn resize(state: &mut State, width: u32, height: u32) {
+    state.config.width = width;
+    state.config.height = height;
+    state.surface.configure(&state.device, &state.config);
+
+    //TODO should we destroy previous texture?
+    state.depth_texture = Texture::create_depth_texture(&state.device, &state.config, "depth_texture");
 }
 
 pub type RenderCallback = fn(&'static mut RenderPass<'static>);

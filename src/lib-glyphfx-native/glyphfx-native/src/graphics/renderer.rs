@@ -46,6 +46,15 @@ pub fn load_material(request: LoadMaterialRequest) -> LoadMaterialResponse {
     LoadMaterialResponse {}
 }
 
+pub fn resize_renderer(width: u32, height: u32) {
+    let state = unsafe { GLOBAL_STATE.as_mut() };
+    if state.is_none() {
+        return;
+    }
+    leg_renderer::resize(state.unwrap(), width, height);
+
+}
+
 pub fn begin_render(_request: BeginRenderRequest) -> BeginRenderResponse {
     let state = unsafe { GLOBAL_STATE.as_ref().unwrap() };
     leg_renderer::render(state, |rpass|{

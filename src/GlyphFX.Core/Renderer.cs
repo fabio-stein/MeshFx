@@ -58,6 +58,8 @@ public class Renderer : IRenderer
             LoadMaterial(scene);
             loadTest = true;
         }
+        
+        rotation += 0.01f;
 
         _currentDrawAction = () =>
         {
@@ -65,7 +67,7 @@ public class Renderer : IRenderer
             for (var i = 0; i < 16; i++)
                 cameraArray[i] = camera.ViewProjection[i / 4, i % 4];
 
-            var matrixList = new[]{Matrix4x4.Identity};
+            var matrixList = new[]{Matrix4x4.CreateRotationY(rotation) * Matrix4x4.CreateScale(30f)};
             var byteArray = MemoryMarshal.Cast<Matrix4x4, byte>(matrixList.AsSpan()).ToArray();
             
             _bridge.Send(new RenderDrawRequest()

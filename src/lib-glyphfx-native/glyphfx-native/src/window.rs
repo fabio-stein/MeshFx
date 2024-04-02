@@ -1,3 +1,4 @@
+use image::imageops::resize;
 use log::info;
 use winit::event::{Event, WindowEvent};
 use winit::event_loop::EventLoop;
@@ -6,7 +7,7 @@ use winit::window::Window;
 use crate::bridge;
 use crate::bridge::glyphfx_native::*;
 use crate::bridge::handle_native;
-use crate::graphics::renderer::{get_global_window};
+use crate::graphics::renderer::{get_global_window, resize_renderer};
 
 pub fn run_main_loop(request: RunMainLoopRequest) -> RunMainLoopResponse {
     info!("Received request for main loop: {:?}", request);
@@ -76,6 +77,10 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
                     WindowEvent::MouseInput { state: _state, button: _button, .. } => {
                     },
                     WindowEvent::CursorMoved { position: _position, .. } => {
+                    },
+                    WindowEvent::Resized(_size) => {
+                        info!("Window resized: {:?}", _size);
+                        resize_renderer(_size.width, _size.height);
                     },
                     WindowEvent::RedrawRequested => {
                         let code = bridge::glyphfx_native::KeyCode::F1;
