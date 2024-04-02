@@ -83,7 +83,6 @@ async fn run(event_loop: EventLoop<()>, window: Window) {
                         resize_renderer(_size.width, _size.height);
                     },
                     WindowEvent::RedrawRequested => {
-                        let code = bridge::glyphfx_native::KeyCode::F1;
                         handle_native::<WindowRedrawRequest, WindowRedrawResponse>(NativeRequestCode::WindowRedraw, WindowRedrawRequest {});
                         get_global_window().unwrap().request_redraw();
                     },

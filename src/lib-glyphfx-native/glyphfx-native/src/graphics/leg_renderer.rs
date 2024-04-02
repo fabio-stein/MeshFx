@@ -2,6 +2,7 @@ use std::borrow::Cow;
 use std::mem;
 use log::info;
 use wgpu::{Adapter, BindGroup, BindGroupLayout, Buffer, Device, Instance, PipelineLayout, Queue, RenderPass, RenderPipeline, ShaderModule, Surface, SurfaceConfiguration, VertexBufferLayout};
+use wgpu::TextureFormat::Bgra8UnormSrgb;
 use winit::window::Window;
 use crate::graphics::material::Material;
 use crate::graphics::model::{Mesh};
@@ -88,9 +89,6 @@ pub async fn init_async(window: &'static Window) -> State {
         source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(include_str!("shader.wgsl"))),
     });
 
-    let swapchain_capabilities = surface.get_capabilities(&adapter);
-    let swapchain_format = swapchain_capabilities.formats[0];
-
     let vertex_buffer_layout = VertexBufferLayout {
         array_stride: mem::size_of::<model::Vertex>() as wgpu::BufferAddress,
         step_mode: wgpu::VertexStepMode::Vertex,
@@ -159,9 +157,25 @@ pub async fn init_async(window: &'static Window) -> State {
     let width = window.inner_size().width.max(1);
     let height = window.inner_size().height.max(1);
 
+    let swapchain_formats = surface.get_capabilities(&adapter).formats;
+
     let mut config = surface
         .get_default_config(&adapter, width, height)
         .unwrap();
+    let is_webgl = adapter.get_info().backend == wgpu::Backend::Gl;
+    if is_webgl {
+        //We work with srgb textures but the difference is that WebGl expects UnormSrgb as swapchain output, while WebGpu expects Unorm with view format as Srgb instead
+        if !swapchain_formats.contains(&wgpu::TextureFormat::Rgba8UnormSrgb) {
+            panic!("GL error: Rgba8UnormSrgb is not supported by the adapter");
+        }
+        config.format = wgpu::TextureFormat::Rgba8UnormSrgb;
+    }else {
+        if !swapchain_formats.contains(&Bgra8UnormSrgb) {
+            panic!("Wgpu error: Bgra8UnormSrgb is not supported by the adapter");
+        }
+        config.format = wgpu::TextureFormat::Bgra8Unorm;
+        config.view_formats = Vec::from(&[Bgra8UnormSrgb]);
+    }
     surface.configure(&device, &config);
 
 
@@ -248,7 +262,7 @@ pub async fn init_async(window: &'static Window) -> State {
         fragment: Some(wgpu::FragmentState {
             module: &shader,
             entry_point: "fs_main",
-            targets: &[Some(swapchain_format.into())],
+            targets: &[Some(config.format.add_srgb_suffix().into())],
         }),
         primitive: wgpu::PrimitiveState{
             //cull_mode: Some(wgpu::Face::Back),
@@ -300,7 +314,10 @@ pub fn render(state: &State, render_callback: RenderCallback){
         .expect("Failed to acquire next swap chain texture");
     let view = frame
         .texture
-        .create_view(&wgpu::TextureViewDescriptor::default());
+        .create_view(&wgpu::TextureViewDescriptor{
+            format: Some(state.config.format.add_srgb_suffix()),
+            ..Default::default()
+        });
     let mut encoder =
         state.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
             label: None,
