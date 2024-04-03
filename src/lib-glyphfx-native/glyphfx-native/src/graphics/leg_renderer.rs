@@ -3,6 +3,7 @@ use std::mem;
 use log::info;
 use wgpu::{Adapter, BindGroup, BindGroupLayout, Buffer, Device, Instance, PipelineLayout, Queue, RenderPass, RenderPipeline, ShaderModule, Surface, SurfaceConfiguration, VertexBufferLayout};
 use wgpu::TextureFormat::Bgra8UnormSrgb;
+use wgpu::util::DeviceExt;
 use winit::window::Window;
 use crate::graphics::material::Material;
 use crate::graphics::model::{Mesh};
@@ -13,12 +14,24 @@ use crate::graphics::texture::Texture;
 #[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 struct InstanceRaw {
     model_matrix: [[f32; 4]; 4],
+    normal: [[f32; 3]; 3],
 }
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 struct CameraUniform {
     view_proj: [[f32; 4]; 4],
+}
+
+#[repr(C)]
+#[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
+struct LightUniform {
+    position: [f32; 3],
+    // Due to uniforms requiring 16 byte (4 float) spacing, we need to use a padding field here
+    _padding: u32,
+    color: [f32; 3],
+    // Due to uniforms requiring 16 byte (4 float) spacing, we need to use a padding field here
+    _padding2: u32,
 }
 
 pub struct State {
@@ -36,6 +49,8 @@ pub struct State {
     camera_bind_group: BindGroup,
     instance_buffer: Buffer,
     depth_texture: Texture,
+    light_buffer: Buffer,
+    light_bind_group: BindGroup,
 }
 
 pub async fn init_async(window: &'static Window) -> State {
@@ -129,6 +144,7 @@ pub async fn init_async(window: &'static Window) -> State {
         attributes: &[
             // A mat4 takes up 4 vertex slots as it is technically 4 vec4s. We need to define a slot
             // for each vec4. We'll have to reassemble the mat4 in the shader.
+            //Model matrix
             wgpu::VertexAttribute {
                 offset: 0,
                 // While our vertex shader only uses locations 0, and 1 now, in later tutorials, we'll
@@ -151,6 +167,22 @@ pub async fn init_async(window: &'static Window) -> State {
                 shader_location: 8,
                 format: wgpu::VertexFormat::Float32x4,
             },
+            //Normal matrix
+            wgpu::VertexAttribute {
+                offset: mem::size_of::<[f32; 16]>() as wgpu::BufferAddress,
+                shader_location: 9,
+                format: wgpu::VertexFormat::Float32x3,
+            },
+            wgpu::VertexAttribute {
+                offset: mem::size_of::<[f32; 19]>() as wgpu::BufferAddress,
+                shader_location: 10,
+                format: wgpu::VertexFormat::Float32x3,
+            },
+            wgpu::VertexAttribute {
+                offset: mem::size_of::<[f32; 22]>() as wgpu::BufferAddress,
+                shader_location: 11,
+                format: wgpu::VertexFormat::Float32x3,
+            },
         ],
     };
 
@@ -170,7 +202,7 @@ pub async fn init_async(window: &'static Window) -> State {
         }
         config.format = wgpu::TextureFormat::Rgba8UnormSrgb;
     }else {
-        if !swapchain_formats.contains(&Bgra8UnormSrgb) {
+        if !swapchain_formats.contains(&wgpu::TextureFormat::Bgra8Unorm) {
             panic!("Wgpu error: Bgra8UnormSrgb is not supported by the adapter");
         }
         config.format = wgpu::TextureFormat::Bgra8Unorm;
@@ -242,11 +274,52 @@ pub async fn init_async(window: &'static Window) -> State {
         label: Some("camera_bind_group"),
     });
 
+    let light_uniform = LightUniform {
+        position: [1.0, 0.0, 1.0],
+        _padding: 0,
+        color: [1.0, 1.0, 1.0],
+        _padding2: 0,
+    };
+
+    // We'll want to update our lights position, so we use COPY_DST
+    let light_buffer = device.create_buffer_init(
+        &wgpu::util::BufferInitDescriptor {
+            label: Some("Light VB"),
+            contents: bytemuck::cast_slice(&[light_uniform]),
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+        }
+    );
+
+    let light_bind_group_layout =
+        device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            entries: &[wgpu::BindGroupLayoutEntry {
+                binding: 0,
+                visibility: wgpu::ShaderStages::VERTEX | wgpu::ShaderStages::FRAGMENT,
+                ty: wgpu::BindingType::Buffer {
+                    ty: wgpu::BufferBindingType::Uniform,
+                    has_dynamic_offset: false,
+                    min_binding_size: None,
+                },
+                count: None,
+            }],
+            label: None,
+        });
+
+    let light_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+        layout: &light_bind_group_layout,
+        entries: &[wgpu::BindGroupEntry {
+            binding: 0,
+            resource: light_buffer.as_entire_binding(),
+        }],
+        label: None,
+    });
+
     let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: None,
         bind_group_layouts: &[
             &texture_bind_group_layout,
             &camera_bind_group_layout,
+            &light_bind_group_layout,
         ],
         push_constant_ranges: &[],
     });
@@ -294,6 +367,8 @@ pub async fn init_async(window: &'static Window) -> State {
         camera_bind_group,
         instance_buffer,
         depth_texture,
+        light_buffer,
+        light_bind_group,
     }
 }
 
@@ -369,6 +444,7 @@ pub fn draw(state: &'static State, rpass: &mut wgpu::RenderPass<'static>, camera
 
     rpass.set_bind_group(0, &material.bind_group, &[]);
     rpass.set_bind_group(1, &state.camera_bind_group, &[]);
+    rpass.set_bind_group(2, &state.light_bind_group, &[]);
     rpass.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
     rpass.set_index_buffer(mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
 

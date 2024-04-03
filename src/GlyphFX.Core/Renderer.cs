@@ -67,14 +67,17 @@ public class Renderer : IRenderer
             for (var i = 0; i < 16; i++)
                 cameraArray[i] = camera.ViewProjection[i / 4, i % 4];
 
-            var matrixList = new[]{Matrix4x4.CreateRotationY(rotation) * Matrix4x4.CreateScale(30f)};
-            var byteArray = MemoryMarshal.Cast<Matrix4x4, byte>(matrixList.AsSpan()).ToArray();
+            var instance1 = new InstanceRaw(Matrix4x4.CreateRotationY(rotation) * Matrix4x4.CreateScale(20f), new Matrix3x3(Matrix4x4.CreateRotationY(rotation)));
+            var instance2PosX = (float)Math.Sin(rotation) * 2 + 1;
+            var instance2 = new InstanceRaw(Matrix4x4.CreateScale(20f) * Matrix4x4.CreateTranslation(Vector3.UnitY + (Vector3.UnitX*-1) + Vector3.UnitX * instance2PosX), new Matrix3x3(Matrix4x4.Identity));
+            var instanceArray = new[]{instance1, instance2};
+            var byteArray = MemoryMarshal.Cast<InstanceRaw, byte>(instanceArray.AsSpan()).ToArray();
             
             _bridge.Send(new RenderDrawRequest()
             {
                 CameraViewProjection = cameraArray,
                 InstanceMatrix = byteArray,
-                InstanceCount = (uint)matrixList.Length
+                InstanceCount = (uint)instanceArray.Length
             });
         };
         _bridge.Send(new BeginRenderRequest());
@@ -109,4 +112,23 @@ public class Renderer : IRenderer
         };
         _bridge.Send(loadMeshRequest);
     }
+}
+
+public struct InstanceRaw(Matrix4x4 model, Matrix3x3 normal)
+{
+    public Matrix4x4 Model = model;
+    public Matrix3x3 Normal = normal;
+}
+
+public struct Matrix3x3(Matrix4x4 matrix)
+{
+    public float M11 = matrix.M11;
+    public float M12 = matrix.M12;
+    public float M13 = matrix.M13;
+    public float M21 = matrix.M21;
+    public float M22 = matrix.M22;
+    public float M23 = matrix.M23;
+    public float M31 = matrix.M31;
+    public float M32 = matrix.M32;
+    public float M33 = matrix.M33;
 }
