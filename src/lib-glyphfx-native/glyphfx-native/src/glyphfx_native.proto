@@ -224,12 +224,14 @@ enum KeyCode {
 }
 message LoadMaterialRequest {
    bytes TextureData = 1;
+   uint32 MaterialId = 2;
 }
 message LoadMaterialResponse {
 }
 message LoadMeshRequest {
    bytes Vertices = 1;
    repeated uint32 Indices = 2 [packed = false];
+   uint32 MeshId = 3;
 }
 message LoadMeshResponse {
 }
@@ -254,6 +256,8 @@ message RenderDrawRequest {
    repeated float CameraViewProjection = 1 [packed = false];
    bytes InstanceMatrix = 2;
    uint32 InstanceCount = 3;
+   uint32 MeshId = 4;
+   uint32 MaterialId = 5;
 }
 message RenderDrawResponse {
 }

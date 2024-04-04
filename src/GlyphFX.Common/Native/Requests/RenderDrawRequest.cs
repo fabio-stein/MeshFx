@@ -11,6 +11,10 @@ public class RenderDrawRequest : INativeRequest<RenderDrawResponse>
     public byte[] InstanceMatrix { get; set; }
     [ProtoMember(3)]
     public uint InstanceCount { get; set; }
+    [ProtoMember(4)]
+    public uint MeshId { get; set; }
+    [ProtoMember(5)]
+    public uint MaterialId { get; set; }
     public NativeRequestCode Code => NativeRequestCode.RENDER_DRAW;
 }
 

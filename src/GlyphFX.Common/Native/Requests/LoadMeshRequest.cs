@@ -10,6 +10,8 @@ public class LoadMeshRequest : INativeRequest<LoadMeshResponse>
     public byte[] Vertices { get; set; }
     [ProtoMember(2)]
     public uint[] Indices { get; set; }
+    [ProtoMember(3)]
+    public uint MeshId { get; set; }
     
     public NativeRequestCode Code => NativeRequestCode.LOAD_MESH;
 }

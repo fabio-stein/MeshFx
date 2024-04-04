@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+use std::ptr::null;
 use log::info;
 use wgpu::RenderPass;
 use winit::window::Window;
@@ -9,10 +11,12 @@ use crate::graphics::material::load_texture;
 
 static mut GLOBAL_STATE: Option<leg_renderer::State> = None;
 static mut GLOBAL_RENDERPASS: Option<&mut RenderPass> = None;
-static mut GLOBAL_MESH: Option<model::Mesh> = None;
-static mut GLOBAL_MATERIAL: Option<material::Material> = None;
+static mut GLOBAL_MESHES: Option<HashMap<u32, model::Mesh>> = None;
+static mut GLOBAL_MATERIALS: Option<HashMap<u32, material::Material>> = None;
 
 pub fn init_renderer(_request: InitRendererRequest) -> InitRendererResponse {
+    unsafe { GLOBAL_MESHES = Some(HashMap::new()) }
+    unsafe { GLOBAL_MATERIALS = Some(HashMap::new()) }
     #[cfg(target_arch = "wasm32")]
     {
         wasm_bindgen_futures::spawn_local(init_renderer_async());
@@ -30,7 +34,7 @@ pub fn load_mesh(request: LoadMeshRequest) -> LoadMeshResponse {
     let mesh = model::load_mesh(state, request.vertices, request.indices.to_vec());
     let indices = mesh.num_indices;
     unsafe {
-        GLOBAL_MESH = Some(mesh);
+        GLOBAL_MESHES.as_mut().unwrap().insert(request.mesh_id, mesh);
     }
     info!("Loaded mesh indices: {}", indices);
     LoadMeshResponse {}
@@ -41,7 +45,7 @@ pub fn load_material(request: LoadMaterialRequest) -> LoadMaterialResponse {
     let state = unsafe { GLOBAL_STATE.as_ref().unwrap() };
     let material = load_texture(state, request.texture_data);
     unsafe {
-        GLOBAL_MATERIAL = Some(material);
+        GLOBAL_MATERIALS.as_mut().unwrap().insert(request.material_id, material);
     }
     LoadMaterialResponse {}
 }
@@ -72,8 +76,8 @@ pub fn begin_render(_request: BeginRenderRequest) -> BeginRenderResponse {
 pub fn render_draw(request: RenderDrawRequest) -> RenderDrawResponse {
     let state = unsafe { GLOBAL_STATE.as_ref().unwrap() };
     let rpass = unsafe { GLOBAL_RENDERPASS.as_mut().unwrap() };
-    let mesh = unsafe { GLOBAL_MESH.as_ref().unwrap() };
-    let material = unsafe { GLOBAL_MATERIAL.as_ref().unwrap() };
+    let mesh = unsafe { GLOBAL_MESHES.as_ref().unwrap().get(&request.mesh_id).unwrap() };
+    let material = unsafe { GLOBAL_MATERIALS.as_ref().unwrap().get(&request.material_id).unwrap() };
     leg_renderer::draw(state, rpass, request.camera_view_projection, request.instance_matrix, request.instance_count, mesh, material);
     RenderDrawResponse {}
 }

@@ -28,9 +28,9 @@ public class Scene(List<Node>? nodes = null)
     public List<Node> Nodes { get; private set; } = nodes ?? new List<Node>();
 }
 
-public class Node(Node[]? children, Mesh? mesh, Matrix4x4? baseMatrix = null, Node.NodeTransform? transform = null)
+public class Node(Mesh? mesh, Matrix4x4? baseMatrix = null, Node.NodeTransform? transform = null)
 {
-    public Node[]? Children { get; private set; } = children;
+    public List<Node> Children { get; private set; } = new();
     public readonly Matrix4x4 BaseMatrix = baseMatrix ?? Matrix4x4.Identity;
     public NodeTransform Transform { get; private set; } = transform ?? new NodeTransform();
     public Matrix4x4 LocalMatrix =>  Matrix4x4.CreateScale(Transform.Scale) * Matrix4x4.CreateFromQuaternion(Transform.Rotation) * Matrix4x4.CreateTranslation(Transform.Translation) * BaseMatrix;

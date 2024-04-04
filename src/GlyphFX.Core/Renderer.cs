@@ -45,20 +45,18 @@ public class Renderer : IRenderer
         return _isReady;
     }
 
-    bool loadTest = false;
-
     float rotation = 0f;
     public void RenderScene(Scene scene, Camera camera)
     {
         if(!_isReady)
             return;
-        if (!loadTest)
+
+        foreach (var meshPrimitive in GetAllMeshPrimitives(scene))
         {
-            LoadMesh(scene);
-            LoadMaterial(scene);
-            loadTest = true;
+            var meshId = GetOrLoadMeshId(meshPrimitive);
+            var materialId = GetOrLoadMaterialId(meshPrimitive.Material);
         }
-        
+
         rotation += 0.01f;
 
         _currentDrawAction = () =>
@@ -67,35 +65,62 @@ public class Renderer : IRenderer
             for (var i = 0; i < 16; i++)
                 cameraArray[i] = camera.ViewProjection[i / 4, i % 4];
 
-            var instance1 = new InstanceRaw(Matrix4x4.CreateRotationY(rotation) * Matrix4x4.CreateScale(20f), new Matrix3x3(Matrix4x4.CreateRotationY(rotation)));
-            var instance2PosX = (float)Math.Sin(rotation) * 2 + 1;
-            var instance2 = new InstanceRaw(Matrix4x4.CreateScale(20f) * Matrix4x4.CreateTranslation(Vector3.UnitY + (Vector3.UnitX*-1) + Vector3.UnitX * instance2PosX), new Matrix3x3(Matrix4x4.Identity));
-            var instanceArray = new[]{instance1, instance2};
+            var node1pos = Matrix4x4.Identity;
+
+            var rotationMatrix = Matrix4x4.CreateRotationY(rotation);
+            
+            var instance1 = new InstanceRaw(node1pos * rotationMatrix * Matrix4x4.CreateScale(20f), new Matrix3x3(rotationMatrix));
+            var instanceArray = new[]{instance1};
             var byteArray = MemoryMarshal.Cast<InstanceRaw, byte>(instanceArray.AsSpan()).ToArray();
             
-            _bridge.Send(new RenderDrawRequest()
+            foreach (var meshPrimitive in GetAllMeshPrimitives(scene))
             {
-                CameraViewProjection = cameraArray,
-                InstanceMatrix = byteArray,
-                InstanceCount = (uint)instanceArray.Length
-            });
+                var meshId = GetOrLoadMeshId(meshPrimitive);
+                var materialId = GetOrLoadMaterialId(meshPrimitive.Material);
+                _bridge.Send(new RenderDrawRequest()
+                {
+                    CameraViewProjection = cameraArray,
+                    InstanceMatrix = byteArray,
+                    InstanceCount = (uint)instanceArray.Length,
+                    MeshId = meshId,
+                    MaterialId = materialId
+                });
+            }
         };
         _bridge.Send(new BeginRenderRequest());
     }
 
-    private void LoadMaterial(Scene scene)
+
+    private HashSet<uint> _loadedMaterialIds = new();
+    private uint GetOrLoadMaterialId(Material material)
     {
-        var meshPrimitive = scene.Nodes.First().Mesh.Primitives.First();
-        var bytes = meshPrimitive.Material.TextureData;
+        var currentId = (uint)material.GetHashCode();//TODO should not use hashCode to avoid collision
+        if (_loadedMaterialIds.Contains(currentId))
+            return currentId;
+        
+        var bytes = material.TextureData;
         _bridge.Send(new LoadMaterialRequest()
         {
-            TextureData = bytes
+            TextureData = bytes,
+            MaterialId = currentId
         });
+        _loadedMaterialIds.Add(currentId);
+        return currentId;
+    }
+    
+    private HashSet<uint> _loadedMeshIds = new();
+    private uint GetOrLoadMeshId(MeshPrimitive mesh)
+    {
+        var currentId = (uint)mesh.GetHashCode();//TODO should not use hashCode to avoid collision
+        if (_loadedMeshIds.Contains(currentId))
+            return currentId;
+        LoadMesh(mesh, currentId);
+        _loadedMeshIds.Add(currentId);
+        return currentId;
     }
 
-    private void LoadMesh(Scene scene)
+    private void LoadMesh(MeshPrimitive meshPrimitive, uint id)
     {
-        var meshPrimitive = scene.Nodes.First().Mesh.Primitives.First();
         var vertices = meshPrimitive.Vertices;
         var size = Unsafe.SizeOf<Vertex>();
         var bytes = new byte[size * vertices.Length];
@@ -108,9 +133,31 @@ public class Renderer : IRenderer
         var loadMeshRequest = new LoadMeshRequest
         {
             Vertices = bytes,
-            Indices = meshPrimitive.Indices
+            Indices = meshPrimitive.Indices,
+            MeshId = id
         };
         _bridge.Send(loadMeshRequest);
+    }
+
+    private List<MeshPrimitive> GetAllMeshPrimitives(Scene scene)
+    {
+        var list = new List<MeshPrimitive>();
+        foreach (var sceneNode in scene.Nodes)
+        {
+            GetAllMeshPrimitives(sceneNode, ref list);
+        }
+
+        return list;
+    }
+    
+    private void GetAllMeshPrimitives(Node node, ref List<MeshPrimitive> outputList)
+    {
+        if(node.Mesh != null)
+            outputList.AddRange(node.Mesh.Primitives);
+        foreach (var nodeChild in node.Children)
+        {
+            GetAllMeshPrimitives(nodeChild, ref outputList);
+        }
     }
 }
 
