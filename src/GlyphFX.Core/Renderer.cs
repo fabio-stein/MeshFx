@@ -63,17 +63,12 @@ public class Renderer : IRenderer
 
         _currentDrawAction = () =>
         {
-            var cameraArray = new float[16];
-            for (var i = 0; i < 16; i++)
-                cameraArray[i] = camera.ViewProjection[i / 4, i % 4];
-            
             foreach (var meshPrimitive in GetAllMeshPrimitives(scene))
             {
                 var meshId = GetOrLoadMeshId(meshPrimitive);
                 var materialId = GetOrLoadMaterialId(meshPrimitive.Material);
                 _bridge.Send(new RenderDrawRequest()
                 {
-                    CameraViewProjection = cameraArray,
                     InstanceItemOffset = 1,
                     InstanceCount = 1,
                     MeshId = meshId,
@@ -81,9 +76,14 @@ public class Renderer : IRenderer
                 });
             }
         };
+        
+        var cameraArray = new float[16];
+        for (var i = 0; i < 16; i++)
+            cameraArray[i] = camera.ViewProjection[i / 4, i % 4];
         _bridge.Send(new BeginRenderRequest()
         {
-            InstanceBuffer = instanceBuffer
+            InstanceBuffer = instanceBuffer,
+            CameraViewProjection = cameraArray
         });
     }
 

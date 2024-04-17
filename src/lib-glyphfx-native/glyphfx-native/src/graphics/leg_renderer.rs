@@ -382,7 +382,7 @@ pub fn resize(state: &mut State, width: u32, height: u32) {
 
 pub type RenderCallback = fn(&'static mut RenderPass<'static>);
 
-pub fn render(state: &State, render_callback: RenderCallback, instances_matrix: Vec<u8>){
+pub fn render(state: &State, render_callback: RenderCallback, instances_matrix: Vec<u8>, camera_uniform: Vec<f32>){
     let frame = state.surface
         .get_current_texture()
         .expect("Failed to acquire next swap chain texture");
@@ -425,6 +425,11 @@ pub fn render(state: &State, render_callback: RenderCallback, instances_matrix: 
         state.queue.write_buffer(&state.instance_buffer, 0, instances_matrix.as_slice());
         rpass.set_vertex_buffer(1, state.instance_buffer.slice(..));
 
+        state.queue.write_buffer(&state.camera_buffer, 0, bytemuck::cast_slice(camera_uniform.as_slice()));
+        rpass.set_bind_group(1, &state.camera_bind_group, &[]);
+
+        rpass.set_bind_group(2, &state.light_bind_group, &[]);
+
         let rpass_ref = &mut rpass;
         let rpass_shared_ref: &'static mut RenderPass<'static> = unsafe { mem::transmute(rpass_ref) };
 
@@ -435,12 +440,8 @@ pub fn render(state: &State, render_callback: RenderCallback, instances_matrix: 
     frame.present();
 }
 
-pub fn draw(state: &'static State, rpass: &mut wgpu::RenderPass<'static>, camera_uniform: Vec<f32>, instance_item_offset: u32, instance_count: u32, mesh: &'static Mesh, material: &'static Material) {
-    state.queue.write_buffer(&state.camera_buffer, 0, bytemuck::cast_slice(camera_uniform.as_slice()));
-
+pub fn draw(state: &'static State, rpass: &mut wgpu::RenderPass<'static>, instance_item_offset: u32, instance_count: u32, mesh: &'static Mesh, material: &'static Material) {
     rpass.set_bind_group(0, &material.bind_group, &[]);
-    rpass.set_bind_group(1, &state.camera_bind_group, &[]);
-    rpass.set_bind_group(2, &state.light_bind_group, &[]);
     rpass.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
     rpass.set_index_buffer(mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
 

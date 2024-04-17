@@ -8,6 +8,7 @@ message AppEventResponse {
 }
 message BeginRenderRequest {
    bytes InstanceBuffer = 1;
+   repeated float CameraViewProjection = 2 [packed = false];
 }
 message BeginRenderResponse {
 }
@@ -254,11 +255,10 @@ enum NativeRequestCode {
    WINDOW_KEYBOARD_EVENT = 1006;
 }
 message RenderDrawRequest {
-   repeated float CameraViewProjection = 1 [packed = false];
-   uint32 InstanceItemOffset = 2;
-   uint32 InstanceCount = 3;
-   uint32 MeshId = 4;
-   uint32 MaterialId = 5;
+   uint32 InstanceItemOffset = 1;
+   uint32 InstanceCount = 2;
+   uint32 MeshId = 3;
+   uint32 MaterialId = 4;
 }
 message RenderDrawResponse {
 }

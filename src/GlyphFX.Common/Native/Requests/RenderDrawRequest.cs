@@ -6,14 +6,12 @@ namespace GlyphFX.Common.Native;
 public class RenderDrawRequest : INativeRequest<RenderDrawResponse>
 {
     [ProtoMember(1)]
-    public float[] CameraViewProjection { get; set; }
-    [ProtoMember(2)]
     public uint InstanceItemOffset { get; set; }
-    [ProtoMember(3)]
+    [ProtoMember(2)]
     public uint InstanceCount { get; set; }
-    [ProtoMember(4)]
+    [ProtoMember(3)]
     public uint MeshId { get; set; }
-    [ProtoMember(5)]
+    [ProtoMember(4)]
     public uint MaterialId { get; set; }
     public NativeRequestCode Code => NativeRequestCode.RENDER_DRAW;
 }

@@ -9,6 +9,9 @@ public class BeginRenderRequest : INativeRequest<BeginRenderResponse>
     
     [ProtoMember(1)]
     public byte[] InstanceBuffer { get; set; }
+    
+    [ProtoMember(2)]
+    public float[] CameraViewProjection { get; set; }
 }
 
 [ProtoContract]
