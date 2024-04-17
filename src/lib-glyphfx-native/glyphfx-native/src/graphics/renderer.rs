@@ -59,7 +59,7 @@ pub fn resize_renderer(width: u32, height: u32) {
 
 }
 
-pub fn begin_render(_request: BeginRenderRequest) -> BeginRenderResponse {
+pub fn begin_render(request: BeginRenderRequest) -> BeginRenderResponse {
     let state = unsafe { GLOBAL_STATE.as_ref().unwrap() };
     leg_renderer::render(state, |rpass|{
         unsafe {
@@ -69,7 +69,7 @@ pub fn begin_render(_request: BeginRenderRequest) -> BeginRenderResponse {
         unsafe {
             GLOBAL_RENDERPASS = None;
         }
-    });
+    }, request.instance_buffer);
     BeginRenderResponse {}
 }
 
@@ -78,7 +78,7 @@ pub fn render_draw(request: RenderDrawRequest) -> RenderDrawResponse {
     let rpass = unsafe { GLOBAL_RENDERPASS.as_mut().unwrap() };
     let mesh = unsafe { GLOBAL_MESHES.as_ref().unwrap().get(&request.mesh_id).unwrap() };
     let material = unsafe { GLOBAL_MATERIALS.as_ref().unwrap().get(&request.material_id).unwrap() };
-    leg_renderer::draw(state, rpass, request.camera_view_projection, request.instance_matrix, request.instance_count, mesh, material);
+    leg_renderer::draw(state, rpass, request.camera_view_projection, request.instance_count, mesh, material);
     RenderDrawResponse {}
 }
 

@@ -54,11 +54,10 @@ pub struct State {
 }
 
 pub async fn init_async(window: &'static Window) -> State {
-    let predefined_instance_buffer_size = 5000;
+    //TODO this fixes the instance limit. Should document and restrict
+    let predefined_instance_buffer_size = 1000;
 
     info!("Initializing renderer");
-
-    let instance = Instance::default();
 
     let backends = wgpu::Backends::all();
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
@@ -383,7 +382,7 @@ pub fn resize(state: &mut State, width: u32, height: u32) {
 
 pub type RenderCallback = fn(&'static mut RenderPass<'static>);
 
-pub fn render(state: &State, render_callback: RenderCallback){
+pub fn render(state: &State, render_callback: RenderCallback, instances_matrix: Vec<u8>){
     let frame = state.surface
         .get_current_texture()
         .expect("Failed to acquire next swap chain texture");
@@ -423,6 +422,9 @@ pub fn render(state: &State, render_callback: RenderCallback){
 
         rpass.set_pipeline(&state.render_pipeline);
 
+        state.queue.write_buffer(&state.instance_buffer, 0, instances_matrix.as_slice());
+        rpass.set_vertex_buffer(1, state.instance_buffer.slice(..));
+
         let rpass_ref = &mut rpass;
         let rpass_shared_ref: &'static mut RenderPass<'static> = unsafe { mem::transmute(rpass_ref) };
 
@@ -433,13 +435,7 @@ pub fn render(state: &State, render_callback: RenderCallback){
     frame.present();
 }
 
-pub fn draw(state: &'static State, rpass: &mut wgpu::RenderPass<'static>, camera_uniform: Vec<f32>, instances_matrix: Vec<u8>, instance_count: u32, mesh: &'static Mesh, material: &'static Material) {
-
-    if true {//TODO different draws for different meshes
-        state.queue.write_buffer(&state.instance_buffer, 0, instances_matrix.as_slice());
-        rpass.set_vertex_buffer(1, state.instance_buffer.slice(..));
-    }
-
+pub fn draw(state: &'static State, rpass: &mut wgpu::RenderPass<'static>, camera_uniform: Vec<f32>, instance_count: u32, mesh: &'static Mesh, material: &'static Material) {
     state.queue.write_buffer(&state.camera_buffer, 0, bytemuck::cast_slice(camera_uniform.as_slice()));
 
     rpass.set_bind_group(0, &material.bind_group, &[]);

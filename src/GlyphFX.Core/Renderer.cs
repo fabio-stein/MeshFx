@@ -56,6 +56,8 @@ public class Renderer : IRenderer
             var meshId = GetOrLoadMeshId(meshPrimitive);
             var materialId = GetOrLoadMaterialId(meshPrimitive.Material);
         }
+        
+        var instanceBuffer = GetInstanceBuffer();
 
         rotation += 0.01f;
 
@@ -64,14 +66,6 @@ public class Renderer : IRenderer
             var cameraArray = new float[16];
             for (var i = 0; i < 16; i++)
                 cameraArray[i] = camera.ViewProjection[i / 4, i % 4];
-
-            var node1pos = Matrix4x4.Identity;
-
-            var rotationMatrix = Matrix4x4.CreateRotationY(rotation);
-            
-            var instance1 = new InstanceRaw(node1pos * rotationMatrix * Matrix4x4.CreateScale(20f), new Matrix3x3(rotationMatrix));
-            var instanceArray = new[]{instance1};
-            var byteArray = MemoryMarshal.Cast<InstanceRaw, byte>(instanceArray.AsSpan()).ToArray();
             
             foreach (var meshPrimitive in GetAllMeshPrimitives(scene))
             {
@@ -80,14 +74,30 @@ public class Renderer : IRenderer
                 _bridge.Send(new RenderDrawRequest()
                 {
                     CameraViewProjection = cameraArray,
-                    InstanceMatrix = byteArray,
-                    InstanceCount = (uint)instanceArray.Length,
+                    InstanceBufferOffset = 0,
+                    InstanceCount = 2,
                     MeshId = meshId,
                     MaterialId = materialId
                 });
             }
         };
-        _bridge.Send(new BeginRenderRequest());
+        _bridge.Send(new BeginRenderRequest()
+        {
+            InstanceBuffer = instanceBuffer
+        });
+    }
+
+    private byte[] GetInstanceBuffer()
+    {
+        var node1pos = Matrix4x4.Identity;
+        var node2Pos = Matrix4x4.CreateTranslation(Vector3.UnitX *0.05f);
+        var rotationMatrix = Matrix4x4.CreateRotationY(rotation);
+            
+        var instance1 = new InstanceRaw(node1pos * rotationMatrix * Matrix4x4.CreateScale(20f), new Matrix3x3(rotationMatrix));
+        var instance2 = new InstanceRaw( rotationMatrix * node2Pos * Matrix4x4.CreateScale(20f), new Matrix3x3(rotationMatrix));
+        var instanceArray = new[]{instance1, instance2};
+        var byteArray = MemoryMarshal.Cast<InstanceRaw, byte>(instanceArray.AsSpan()).ToArray();
+        return byteArray;
     }
 
 
