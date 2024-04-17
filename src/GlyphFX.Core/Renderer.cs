@@ -74,8 +74,8 @@ public class Renderer : IRenderer
                 _bridge.Send(new RenderDrawRequest()
                 {
                     CameraViewProjection = cameraArray,
-                    InstanceBufferOffset = 0,
-                    InstanceCount = 2,
+                    InstanceItemOffset = 1,
+                    InstanceCount = 1,
                     MeshId = meshId,
                     MaterialId = materialId
                 });

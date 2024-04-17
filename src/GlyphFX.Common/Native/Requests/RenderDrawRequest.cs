@@ -8,7 +8,7 @@ public class RenderDrawRequest : INativeRequest<RenderDrawResponse>
     [ProtoMember(1)]
     public float[] CameraViewProjection { get; set; }
     [ProtoMember(2)]
-    public uint InstanceBufferOffset { get; set; }
+    public uint InstanceItemOffset { get; set; }
     [ProtoMember(3)]
     public uint InstanceCount { get; set; }
     [ProtoMember(4)]

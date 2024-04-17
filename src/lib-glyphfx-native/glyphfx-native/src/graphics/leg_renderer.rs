@@ -435,7 +435,7 @@ pub fn render(state: &State, render_callback: RenderCallback, instances_matrix: 
     frame.present();
 }
 
-pub fn draw(state: &'static State, rpass: &mut wgpu::RenderPass<'static>, camera_uniform: Vec<f32>, instance_count: u32, mesh: &'static Mesh, material: &'static Material) {
+pub fn draw(state: &'static State, rpass: &mut wgpu::RenderPass<'static>, camera_uniform: Vec<f32>, instance_item_offset: u32, instance_count: u32, mesh: &'static Mesh, material: &'static Material) {
     state.queue.write_buffer(&state.camera_buffer, 0, bytemuck::cast_slice(camera_uniform.as_slice()));
 
     rpass.set_bind_group(0, &material.bind_group, &[]);
@@ -444,5 +444,6 @@ pub fn draw(state: &'static State, rpass: &mut wgpu::RenderPass<'static>, camera
     rpass.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
     rpass.set_index_buffer(mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
 
-    rpass.draw_indexed(0..mesh.num_indices, 0, 0..instance_count as _);
+    let maxOffset = instance_item_offset + instance_count;
+    rpass.draw_indexed(0..mesh.num_indices, 0, instance_item_offset..maxOffset);
 }
