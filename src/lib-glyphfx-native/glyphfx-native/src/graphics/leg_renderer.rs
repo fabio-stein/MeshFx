@@ -444,6 +444,6 @@ pub fn draw(state: &'static State, rpass: &mut wgpu::RenderPass<'static>, camera
     rpass.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
     rpass.set_index_buffer(mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
 
-    let maxOffset = instance_item_offset + instance_count;
-    rpass.draw_indexed(0..mesh.num_indices, 0, instance_item_offset..maxOffset);
+    let max_offset = instance_item_offset + instance_count;
+    rpass.draw_indexed(0..mesh.num_indices, 0, instance_item_offset..max_offset);
 }
