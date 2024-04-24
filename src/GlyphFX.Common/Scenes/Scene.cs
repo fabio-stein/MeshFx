@@ -32,15 +32,32 @@ public class Node(Mesh? mesh, Matrix4x4? baseMatrix = null, Node.NodeTransform? 
 {
     public List<Node> Children { get; private set; } = new();
     public readonly Matrix4x4 BaseMatrix = baseMatrix ?? Matrix4x4.Identity;
-    public NodeTransform Transform { get; private set; } = transform ?? new NodeTransform();
+    public NodeTransform Transform { get; private set; } = transform ?? new NodeTransform(null, null, null);
     public Matrix4x4 LocalMatrix =>  Matrix4x4.CreateScale(Transform.Scale) * Matrix4x4.CreateFromQuaternion(Transform.Rotation) * Matrix4x4.CreateTranslation(Transform.Translation) * BaseMatrix;
     public Mesh? Mesh { get; private set; } = mesh;
     
-    public class NodeTransform()
+    public struct NodeTransform(Vector3? translation, Quaternion? rotation, Vector3? scale)
     {
-        public Vector3 Translation = Vector3.Zero;
-        public Quaternion Rotation = Quaternion.Identity;
-        public Vector3 Scale = Vector3.One;
+        public Vector3 Translation = translation ?? Vector3.Zero;
+        public Quaternion Rotation = rotation ?? Quaternion.Identity;
+        public Vector3 Scale = scale ?? Vector3.One;
+
+        public NodeTransform() : this(null, null, null)
+        {
+        }
+        
+        public Matrix4x4 GetTransformationMatrix()
+        {
+            return Matrix4x4.CreateScale(Scale)
+                   * Matrix4x4.CreateFromQuaternion(Rotation)
+                   * Matrix4x4.CreateTranslation(Translation)
+                   ;
+        }
+        
+        public NodeTransform Clone()
+        {
+            return (NodeTransform)this.MemberwiseClone();
+        }
     }
 }
 

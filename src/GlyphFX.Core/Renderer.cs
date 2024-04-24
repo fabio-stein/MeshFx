@@ -57,26 +57,55 @@ public class Renderer : IRenderer
             var materialId = GetOrLoadMaterialId(meshPrimitive.Material);
         }
         
-        var instanceBuffer = GetInstanceBuffer();
-
         rotation += 0.01f;
+        
+        var instancesList = new List<InstanceRaw>();
+        var instanceCountOffset = 0;
 
+        var renderItems = GetRenderItems(scene).GroupBy(r => r.MeshPrimitive).Select(r => new
+        {
+            MeshPrimitive = r.Key,
+            Instances = r.ToList()
+        }).ToList();
+        
+        foreach (var item in renderItems)
+        {
+            var instanceArray = item.Instances.Select(r =>
+            {
+                var outputMatrix = r.FinalMatrix;
+                var rotationMatrix = new Matrix3x3(Matrix4x4.CreateFromQuaternion(r.Transform.Rotation));
+                return new InstanceRaw(outputMatrix, rotationMatrix);
+            }).ToArray();
+            instancesList.AddRange(instanceArray);
+        }
+        
         _currentDrawAction = () =>
         {
-            foreach (var meshPrimitive in GetAllMeshPrimitives(scene))
+            foreach (var item in renderItems)
             {
+                var meshPrimitive = item.MeshPrimitive;
+                var instanceArray = item.Instances.Select(r =>
+                {
+                    var outputMatrix = r.FinalMatrix;
+                    var rotationMatrix = new Matrix3x3(Matrix4x4.CreateFromQuaternion(r.Transform.Rotation));
+                    return new InstanceRaw(outputMatrix, rotationMatrix);
+                }).ToArray();
+                
                 var meshId = GetOrLoadMeshId(meshPrimitive);
                 var materialId = GetOrLoadMaterialId(meshPrimitive.Material);
                 _bridge.Send(new RenderDrawRequest()
                 {
-                    InstanceItemOffset = 1,
-                    InstanceCount = 1,
+                    InstanceCount = (uint)instanceArray.Length,
                     MeshId = meshId,
-                    MaterialId = materialId
+                    MaterialId = materialId,
+                    InstanceItemOffset = (uint)instanceCountOffset
                 });
+
+                instanceCountOffset += instanceArray.Length;
             }
         };
         
+        var instanceBuffer = GetInstanceBuffer(instancesList);
         var cameraArray = new float[16];
         for (var i = 0; i < 16; i++)
             cameraArray[i] = camera.ViewProjection[i / 4, i % 4];
@@ -87,15 +116,9 @@ public class Renderer : IRenderer
         });
     }
 
-    private byte[] GetInstanceBuffer()
+    private byte[] GetInstanceBuffer(List<InstanceRaw> instances)
     {
-        var node1pos = Matrix4x4.Identity;
-        var node2Pos = Matrix4x4.CreateTranslation(Vector3.UnitX *0.05f);
-        var rotationMatrix = Matrix4x4.CreateRotationY(rotation);
-            
-        var instance1 = new InstanceRaw(node1pos * rotationMatrix * Matrix4x4.CreateScale(20f), new Matrix3x3(rotationMatrix));
-        var instance2 = new InstanceRaw( rotationMatrix * node2Pos * Matrix4x4.CreateScale(20f), new Matrix3x3(rotationMatrix));
-        var instanceArray = new[]{instance1, instance2};
+        var instanceArray = instances.ToArray();
         var byteArray = MemoryMarshal.Cast<InstanceRaw, byte>(instanceArray.AsSpan()).ToArray();
         return byteArray;
     }
@@ -169,6 +192,36 @@ public class Renderer : IRenderer
             GetAllMeshPrimitives(nodeChild, ref outputList);
         }
     }
+    
+    private List<RenderDrawItem> GetRenderItems(Scene scene)
+    {
+        var list = new List<RenderDrawItem>();
+        var emptyTransform = new Node.NodeTransform();
+        foreach (var sceneNode in scene.Nodes)
+            GetRenderItems(sceneNode, emptyTransform, ref list, Matrix4x4.Identity);
+
+        return list;
+    }
+    
+    private void GetRenderItems(Node node, Node.NodeTransform parentTransform, ref List<RenderDrawItem> outputList, Matrix4x4 parentMatrix)
+    {
+        var finalTransform = node.Transform;
+        var finalMatrix = node.Transform.GetTransformationMatrix() * parentMatrix;
+        if (node.Mesh != null)
+        {
+            foreach (var mesh in node.Mesh.Primitives)
+                outputList.Add(new RenderDrawItem()
+                {
+                    Material = mesh.Material,
+                    Transform = finalTransform,
+                    MeshPrimitive = mesh,
+                    FinalMatrix = finalMatrix
+                });
+        }
+
+        foreach (var nodeChild in node.Children)
+            GetRenderItems(nodeChild, finalTransform, ref outputList, finalMatrix);
+    }
 }
 
 public struct InstanceRaw(Matrix4x4 model, Matrix3x3 normal)
@@ -177,6 +230,7 @@ public struct InstanceRaw(Matrix4x4 model, Matrix3x3 normal)
     public Matrix3x3 Normal = normal;
 }
 
+//TODO move to a better place, should not be here
 public struct Matrix3x3(Matrix4x4 matrix)
 {
     public float M11 = matrix.M11;
@@ -188,4 +242,12 @@ public struct Matrix3x3(Matrix4x4 matrix)
     public float M31 = matrix.M31;
     public float M32 = matrix.M32;
     public float M33 = matrix.M33;
+}
+
+class RenderDrawItem
+{
+    public MeshPrimitive MeshPrimitive { get; set; }
+    public Material Material { get; set; }
+    public Node.NodeTransform Transform { get; set; }
+    public Matrix4x4 FinalMatrix { get; set; }
 }

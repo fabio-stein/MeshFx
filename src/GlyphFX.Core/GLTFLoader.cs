@@ -14,7 +14,7 @@ public class GltfLoader
     public static Scene Load(Stream stream)
     {
         var model = ModelRoot.ReadGLB(stream);
-        var scene = new Scene(model.LogicalNodes.Select(ParseNode).ToList());
+        var scene = new Scene(model.DefaultScene.VisualChildren.Select(ParseNode).ToList());
         return scene;
     }
 
@@ -29,8 +29,10 @@ public class GltfLoader
         {
             Console.WriteLine("Failed to parse node");
         }
-        Node.NodeTransform? transform = null;//TODO UPDATE
+        var transform = new Node.NodeTransform(glNode.LocalTransform.Translation, glNode.LocalTransform.Rotation, glNode.LocalTransform.Scale);
         var node = new Node(mesh, glNode.LocalMatrix, transform);
+        foreach(var glChildNode in glNode.VisualChildren)
+            node.Children.Add(ParseNode(glChildNode));
         return node;
     }
 
