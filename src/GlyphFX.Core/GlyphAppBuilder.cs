@@ -10,6 +10,7 @@ public class GlyphAppBuilder
     private IWindowEventHandler _windowEventHandler;
     private IRenderer _renderer;
     private Scene _scene;
+    private Action _onUpdate;
     
     public GlyphAppBuilder WithWindowManager(IWindowManager windowManager)
     {
@@ -34,6 +35,12 @@ public class GlyphAppBuilder
         _scene = scene;
         return this;
     }
+
+    public GlyphAppBuilder WithUpdateHandler(Action onUpdate)
+    {
+        _onUpdate = onUpdate;
+        return this;
+    }
     
     public GlyphApp Build()
     {
@@ -44,6 +51,6 @@ public class GlyphAppBuilder
         if (_renderer == null)
             throw new InvalidOperationException("Renderer is required");
         
-        return new GlyphApp(_windowManager, _windowEventHandler, _renderer, _scene);
+        return new GlyphApp(_windowManager, _windowEventHandler, _renderer, _scene, _onUpdate);
     }
 }

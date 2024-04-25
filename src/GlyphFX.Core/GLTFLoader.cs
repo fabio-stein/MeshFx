@@ -32,7 +32,7 @@ public class GltfLoader
         var transform = new Node.NodeTransform(glNode.LocalTransform.Translation, glNode.LocalTransform.Rotation, glNode.LocalTransform.Scale);
         var node = new Node(mesh, glNode.LocalMatrix, transform);
         foreach(var glChildNode in glNode.VisualChildren)
-            node.Children.Add(ParseNode(glChildNode));
+            ParseNode(glChildNode).SetParent(node);
         return node;
     }
 

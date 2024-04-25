@@ -196,17 +196,16 @@ public class Renderer : IRenderer
     private List<RenderDrawItem> GetRenderItems(Scene scene)
     {
         var list = new List<RenderDrawItem>();
-        var emptyTransform = new Node.NodeTransform();
         foreach (var sceneNode in scene.Nodes)
-            GetRenderItems(sceneNode, emptyTransform, ref list, Matrix4x4.Identity);
+            GetRenderItems(sceneNode, ref list, Matrix4x4.Identity);
 
         return list;
     }
     
-    private void GetRenderItems(Node node, Node.NodeTransform parentTransform, ref List<RenderDrawItem> outputList, Matrix4x4 parentMatrix)
+    private void GetRenderItems(Node node, ref List<RenderDrawItem> outputList, Matrix4x4 parentMatrix)
     {
-        var finalTransform = node.Transform;
-        var finalMatrix = node.Transform.GetTransformationMatrix() * parentMatrix;
+        var finalTransform = node.WorldTransform;
+        var finalMatrix = node.WorldTransform.GetTransformationMatrix();
         if (node.Mesh != null)
         {
             foreach (var mesh in node.Mesh.Primitives)
@@ -220,7 +219,7 @@ public class Renderer : IRenderer
         }
 
         foreach (var nodeChild in node.Children)
-            GetRenderItems(nodeChild, finalTransform, ref outputList, finalMatrix);
+            GetRenderItems(nodeChild, ref outputList, finalMatrix);
     }
 }
 

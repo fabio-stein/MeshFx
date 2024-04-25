@@ -28,22 +28,79 @@ public class Scene(List<Node>? nodes = null)
     public List<Node> Nodes { get; private set; } = nodes ?? new List<Node>();
 }
 
-public class Node(Mesh? mesh, Matrix4x4? baseMatrix = null, Node.NodeTransform? transform = null)
+public class Node
 {
-    public List<Node> Children { get; private set; } = new();
-    public readonly Matrix4x4 BaseMatrix = baseMatrix ?? Matrix4x4.Identity;
-    public NodeTransform Transform { get; private set; } = transform ?? new NodeTransform(null, null, null);
-    public Matrix4x4 LocalMatrix =>  Matrix4x4.CreateScale(Transform.Scale) * Matrix4x4.CreateFromQuaternion(Transform.Rotation) * Matrix4x4.CreateTranslation(Transform.Translation) * BaseMatrix;
-    public Mesh? Mesh { get; private set; } = mesh;
-    
-    public struct NodeTransform(Vector3? translation, Quaternion? rotation, Vector3? scale)
-    {
-        public Vector3 Translation = translation ?? Vector3.Zero;
-        public Quaternion Rotation = rotation ?? Quaternion.Identity;
-        public Vector3 Scale = scale ?? Vector3.One;
+    private List<Node> _children = new();
 
-        public NodeTransform() : this(null, null, null)
+    public IReadOnlyList<Node> Children => _children.AsReadOnly();
+    //public readonly Matrix4x4 BaseMatrix = baseMatrix ?? Matrix4x4.Identity;
+    public NodeTransform LocalTransform { get; private set; }
+    public NodeTransform WorldTransform { get; private set; } = new NodeTransform(null, null, null);
+    public Node Parent { get; private set; }
+    public Mesh? Mesh { get; private set; }
+    
+    public Node(Mesh? mesh, Matrix4x4? baseMatrix = null, Node.NodeTransform? transform = null)
+    {
+        LocalTransform = transform ?? new NodeTransform(null, null, null);
+        Mesh = mesh;
+        UpdateWorldTransform();
+    }
+    
+    public void SetParent(Node parent)
+    {
+        if (Parent != null)
+            Parent._children.Remove(this);
+        Parent = parent;
+        Parent?._children.Add(this);
+        UpdateWorldTransform();
+    }
+
+    public void UpdateWorldTransform()
+    {
+        WorldTransform = LocalTransform.Clone();
+        if (Parent != null)
+            WorldTransform.ApplyParentTransform(Parent.WorldTransform);
+        
+        foreach (var child in Children)
+            child.UpdateWorldTransform();
+    }
+    
+    public void Rotate(Vector3 axis, float angle, RotationSpace space = RotationSpace.Local)
+    {
+        Quaternion rotationIncrement = Quaternion.CreateFromAxisAngle(axis, angle);
+        
+        if (space == RotationSpace.Local)
+            LocalTransform.Rotation *= rotationIncrement;
+        else
         {
+            //For world space rotation we basically create a new rotation with Parent's Transform and rotating it then use that to get the final rotation target
+            //if we subtract both we get the increment needed for applying into Local Transform and getting the same position
+            Quaternion worldRotation = Parent?.WorldTransform?.Rotation ?? Quaternion.Identity;
+            var localRotationIncrement = Quaternion.Concatenate(rotationIncrement, worldRotation) *
+                                         Quaternion.Inverse(worldRotation);
+            LocalTransform.Rotation *= localRotationIncrement;
+        }
+
+        UpdateWorldTransform();
+    }
+    
+    public enum RotationSpace
+    {
+        Local,
+        World
+    }
+    
+    public class NodeTransform
+    {
+        public Vector3 Translation { get; set; }
+        public Quaternion Rotation { get; set; }
+        public Vector3 Scale { get; set; }
+
+        public NodeTransform(Vector3? translation, Quaternion? rotation, Vector3? scale)
+        {
+            Translation = translation ?? Vector3.Zero;
+            Rotation = rotation ?? Quaternion.Identity;
+            Scale = scale ?? Vector3.One;
         }
         
         public Matrix4x4 GetTransformationMatrix()
@@ -54,9 +111,19 @@ public class Node(Mesh? mesh, Matrix4x4? baseMatrix = null, Node.NodeTransform? 
                    ;
         }
         
+        public void ApplyParentTransform(NodeTransform parentTransform)
+        {
+            Translation = Vector3.Transform(Translation, parentTransform.Rotation);
+            Translation *= parentTransform.Scale;
+            Translation += parentTransform.Translation;
+
+            Rotation = parentTransform.Rotation * Rotation;
+            Scale *= parentTransform.Scale;
+        }
+        
         public NodeTransform Clone()
         {
-            return (NodeTransform)this.MemberwiseClone();
+            return (NodeTransform)MemberwiseClone();
         }
     }
 }
