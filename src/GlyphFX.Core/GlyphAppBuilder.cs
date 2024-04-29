@@ -1,4 +1,5 @@
 using GlyphFX.Common.Callbacks;
+using GlyphFX.Common.Input;
 using GlyphFX.Common.Interfaces;
 using GlyphFX.Common.Scenes;
 
@@ -9,6 +10,7 @@ public class GlyphAppBuilder
     private IWindowManager _windowManager;
     private IWindowEventHandler _windowEventHandler;
     private IRenderer _renderer;
+    private IInputManager _inputManager;
     private Scene _scene;
     private Action _onUpdate;
     
@@ -42,6 +44,12 @@ public class GlyphAppBuilder
         return this;
     }
     
+    public GlyphAppBuilder WithInputManager(IInputManager inputManager)
+    {
+        _inputManager = inputManager;
+        return this;
+    }
+    
     public GlyphApp Build()
     {
         if (_windowManager == null)
@@ -50,6 +58,8 @@ public class GlyphAppBuilder
             throw new InvalidOperationException("WindowEventHandler is required");
         if (_renderer == null)
             throw new InvalidOperationException("Renderer is required");
+        if (_inputManager == null)
+            throw new InvalidOperationException("InputManager is required");
         
         return new GlyphApp(_windowManager, _windowEventHandler, _renderer, _scene, _onUpdate);
     }

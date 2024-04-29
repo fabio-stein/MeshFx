@@ -14,7 +14,6 @@ public class WindowManager(INativeRequestBridge bridge) : IWindowManager
         bridge.SetHandler(new DefaultAppEventHandler(windowEventHandler));
         bridge.SetHandler(new SimpleNativeHandler<WindowResumeEventRequest, WindowResumeEventResponse>(request => OnResume.Invoke(this, request)));
         bridge.SetHandler(new SimpleNativeHandler<WindowRedrawRequest, WindowRedrawResponse>(request => OnRedraw.Invoke(this, request)));
-        bridge.SetHandler(new SimpleNativeHandler<WindowKeyboardEventRequest, WindowKeyboardEventResponse>(data => Console.WriteLine($"Key updated: {data.KeyCode} - pressed:{data.IsPressed}")));
         bridge.Send(new RunMainLoopRequest());
     }
 }

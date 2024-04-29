@@ -1,5 +1,6 @@
 using System.Numerics;
 using System.Reflection;
+using GlyphFX.Common.Input;
 using GlyphFX.Common.Native;
 using GlyphFX.Common.Scenes;
 using GlyphFX.Core;
@@ -21,17 +22,25 @@ public class ExampleScene
         var scene = GltfLoader.Load(stream);
         var demoNode = scene.Nodes.First().Children.First();
         
-        var windowManager = new WindowManager(_bridge);
+
+        var inputManager = new InputManager(_bridge);
         
         new GlyphAppBuilder()
-            .WithWindowManager(windowManager)
+            .WithWindowManager(new WindowManager(_bridge))
+            .WithInputManager(inputManager)
             .WithWindowEventHandler(new WindowEventHandler())
             .WithRenderer(new Renderer(_bridge))
             .WithScene(scene)
             .WithUpdateHandler(() =>
             {
-                //TODO rotate if button is down
-                demoNode.Rotate(Vector3.UnitY, 0.01f, Node.RotationSpace.World);
+                var inputVal = 0;
+                if (inputManager.IsKeyDown(KeyCode.KeyA))
+                    inputVal = 1;
+                if (inputManager.IsKeyDown(KeyCode.KeyD))
+                    inputVal = -1;
+
+                var increment = 0.01f * inputVal;
+                demoNode.Rotate(Vector3.UnitY, increment, Node.RotationSpace.World);
                 demoNode.UpdateWorldTransform();
             })
             .Build()
