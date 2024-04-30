@@ -147,9 +147,12 @@ public class Material(byte[] textureData)
 
 public class Camera
 {
-    private Vector3 _eye = new Vector3(0, 2.0f, 4.0f);
-    private Vector3 _target = new Vector3(0, 0, 0f);
+    public Vector3 Eye = new Vector3(0, 2.0f, 4.0f);
+    public Vector3 Target = new Vector3(0, 0, 0f);
     private Vector3 _up = new Vector3(0, 1, 0);
+    public Vector3 Forward => Target - Eye;
+    public Vector3 Backward => Eye - Target;
+    public Vector3 Right => Vector3.Cross(Forward, _up);
     private float _fovDegrees = 60.0f;
     private float _aspectRatio = 1f;
     private float _znear = 0.1f;
@@ -162,11 +165,18 @@ public class Camera
         UpdateProjection();
     }
     
-    private void UpdateProjection()
+    public void UpdateProjection()
     {
         float fovRadians = _fovDegrees * (float)Math.PI / 180.0f;
-        Matrix4x4 view = Matrix4x4.CreateLookAt(_eye, _target, _up);
+        Matrix4x4 view = Matrix4x4.CreateLookAt(Eye, Target, _up);
         Matrix4x4 proj = Matrix4x4.CreatePerspectiveFieldOfView(fovRadians, _aspectRatio, _znear, _zfar);
         ViewProjection = view * proj;
+    }
+    
+    public void RotateAroundTarget(Vector3 axis, float angle)
+    {
+        Quaternion rotation = Quaternion.CreateFromAxisAngle(axis, angle);
+        var transform = Vector3.Transform(Backward, rotation);
+        Eye = Target + transform;
     }
 }

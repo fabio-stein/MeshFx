@@ -1,4 +1,6 @@
 using GlyphFX.Common.Callbacks;
+using GlyphFX.Common.Cameras;
+using GlyphFX.Common.Input;
 using GlyphFX.Common.Interfaces;
 using GlyphFX.Common.Native;
 using GlyphFX.Common.Scenes;
@@ -12,16 +14,23 @@ public class GlyphApp
     private readonly IRenderer _renderer;
     private readonly Action _onUpdate;
     private readonly SceneManager _sceneManager = new SceneManager();
-    
-    public GlyphApp(IWindowManager windowManager, IWindowEventHandler windowEventHandler, IRenderer renderer, Scene scene, Action onUpdate)
+    private readonly ICameraController _cameraController;
+    private readonly IInputManager _inputManager;
+
+    public GlyphApp(IWindowManager windowManager, IWindowEventHandler windowEventHandler, IRenderer renderer,
+        Scene scene, Action onUpdate, IInputManager inputManager, ICameraController cameraController)
     {
         _windowManager = windowManager;
         _windowEventHandler = windowEventHandler;
         _renderer = renderer;
         _onUpdate = onUpdate;
+        _inputManager = inputManager;
+        _cameraController = cameraController;
 
         _sceneManager.LoadScene(scene);
-        _sceneManager.SetCamera(new Camera());
+        var camera = new Camera();
+        _sceneManager.SetCamera(camera);
+        _cameraController.SetCamera(camera);
     }
     
     public void Run()
@@ -43,6 +52,7 @@ public class GlyphApp
     private void OnRedraw(object? sender, WindowRedrawRequest e)
     {
         _onUpdate();
+        _cameraController.Update(_inputManager);
         _renderer.RenderScene(_sceneManager.CurrentScene, _sceneManager.CurrentCamera);
     }
 }

@@ -1,4 +1,5 @@
 using GlyphFX.Common.Callbacks;
+using GlyphFX.Common.Cameras;
 using GlyphFX.Common.Input;
 using GlyphFX.Common.Interfaces;
 using GlyphFX.Common.Scenes;
@@ -11,9 +12,10 @@ public class GlyphAppBuilder
     private IWindowEventHandler _windowEventHandler;
     private IRenderer _renderer;
     private IInputManager _inputManager;
+    private ICameraController _cameraController;
     private Scene _scene;
     private Action _onUpdate;
-    
+
     public GlyphAppBuilder WithWindowManager(IWindowManager windowManager)
     {
         _windowManager = windowManager;
@@ -50,6 +52,12 @@ public class GlyphAppBuilder
         return this;
     }
     
+    public GlyphAppBuilder WithCameraController(ICameraController cameraController)
+    {
+        _cameraController = cameraController;
+        return this;
+    }
+    
     public GlyphApp Build()
     {
         if (_windowManager == null)
@@ -60,7 +68,9 @@ public class GlyphAppBuilder
             throw new InvalidOperationException("Renderer is required");
         if (_inputManager == null)
             throw new InvalidOperationException("InputManager is required");
+        if (_cameraController == null)
+            throw new InvalidOperationException("CameraController is required");
         
-        return new GlyphApp(_windowManager, _windowEventHandler, _renderer, _scene, _onUpdate);
+        return new GlyphApp(_windowManager, _windowEventHandler, _renderer, _scene, _onUpdate, _inputManager, _cameraController);
     }
 }
