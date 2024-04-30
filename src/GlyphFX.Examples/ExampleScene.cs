@@ -27,7 +27,6 @@ public class ExampleScene
         new GlyphAppBuilder()
             .WithWindowManager(new WindowManager(_bridge))
             .WithInputManager(inputManager)
-            .WithWindowEventHandler(new WindowEventHandler())
             .WithRenderer(new Renderer(_bridge))
             .WithScene(scene)
             .WithCameraController(new OrbitCameraController())

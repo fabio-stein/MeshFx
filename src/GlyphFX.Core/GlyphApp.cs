@@ -37,10 +37,6 @@ public class GlyphApp
     {
         _windowManager.OnResume += OnResume;
         _windowManager.OnRedraw += OnRedraw;
-        _windowEventHandler.OnTest += (sender, name) =>
-        {
-            Console.WriteLine($"Event received: {name}");
-        };
         _windowManager.RunLoop(_windowEventHandler);
     }
     
