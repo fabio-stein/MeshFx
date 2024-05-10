@@ -69,7 +69,7 @@ pub fn begin_render(request: BeginRenderRequest) -> BeginRenderResponse {
         unsafe {
             GLOBAL_RENDERPASS = None;
         }
-    }, request.instance_buffer, request.camera_buffer);
+    }, request.instance_buffer, request.camera_buffer, request.light_buffer);
     BeginRenderResponse {}
 }
 

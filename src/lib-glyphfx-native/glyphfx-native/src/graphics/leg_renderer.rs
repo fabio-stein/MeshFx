@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 use std::mem;
 use log::info;
-use wgpu::{Adapter, BindGroup, BindGroupLayout, Buffer, Device, Instance, PipelineLayout, Queue, RenderPass, RenderPipeline, ShaderModule, Surface, SurfaceConfiguration, VertexBufferLayout};
+use wgpu::{Adapter, BindGroup, BindGroupLayout, Buffer, BufferDescriptor, Device, Instance, PipelineLayout, Queue, RenderPass, RenderPipeline, ShaderModule, Surface, SurfaceConfiguration, VertexBufferLayout};
 use wgpu::TextureFormat::Bgra8UnormSrgb;
 use wgpu::util::DeviceExt;
 use winit::window::Window;
@@ -275,18 +275,12 @@ pub async fn init_async(window: &'static Window) -> State {
         label: Some("camera_bind_group"),
     });
 
-    let light_uniform = LightUniform {
-        position: [1.0, 0.0, 1.0],
-        _padding: 0,
-        color: [1.0, 1.0, 1.0],
-        _padding2: 0,
-    };
-
     // We'll want to update our lights position, so we use COPY_DST
-    let light_buffer = device.create_buffer_init(
-        &wgpu::util::BufferInitDescriptor {
+    let light_buffer = device.create_buffer(
+        &BufferDescriptor {
             label: Some("Light VB"),
-            contents: bytemuck::cast_slice(&[light_uniform]),
+            mapped_at_creation: false,
+            size: mem::size_of::<LightUniform>() as wgpu::BufferAddress,
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
         }
     );
@@ -384,7 +378,7 @@ pub fn resize(state: &mut State, width: u32, height: u32) {
 
 pub type RenderCallback = fn(&'static mut RenderPass<'static>);
 
-pub fn render(state: &State, render_callback: RenderCallback, instances_matrix: Vec<u8>, camera_uniform: Vec<u8>){
+pub fn render(state: &State, render_callback: RenderCallback, instances_matrix: Vec<u8>, camera_uniform: Vec<u8>, light_uniform: Vec<u8>){
     let frame = state.surface
         .get_current_texture()
         .expect("Failed to acquire next swap chain texture");
@@ -431,6 +425,7 @@ pub fn render(state: &State, render_callback: RenderCallback, instances_matrix: 
         rpass.set_bind_group(1, &state.camera_bind_group, &[]);
 
         rpass.set_bind_group(2, &state.light_bind_group, &[]);
+        state.queue.write_buffer(&state.light_buffer, 0, bytemuck::cast_slice(light_uniform.as_slice()));
 
         let rpass_ref = &mut rpass;
         let rpass_shared_ref: &'static mut RenderPass<'static> = unsafe { mem::transmute(rpass_ref) };

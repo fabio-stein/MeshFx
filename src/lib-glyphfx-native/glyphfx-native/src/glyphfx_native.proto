@@ -9,6 +9,7 @@ message AppEventResponse {
 message BeginRenderRequest {
    bytes InstanceBuffer = 1;
    bytes CameraBuffer = 2;
+   bytes LightBuffer = 3;
 }
 message BeginRenderResponse {
 }

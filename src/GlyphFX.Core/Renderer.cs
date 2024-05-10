@@ -105,22 +105,15 @@ public class Renderer : IRenderer
             }
         };
         
-        var instanceBuffer = GetInstanceBuffer(instancesList);
         var cameraBuffer = new CameraBuffer(camera.ViewProjection, camera.Eye);
+        var lightBuffer = new LightBuffer(camera.Eye, Vector3.One);//Light is following eye position
         _bridge.Send(new BeginRenderRequest()
         {
-            InstanceBuffer = instanceBuffer,
-            CameraBuffer = MemoryMarshal.Cast<CameraBuffer, byte>([cameraBuffer]).ToArray()
+            InstanceBuffer = MemoryMarshal.Cast<InstanceRaw, byte>(instancesList.ToArray()).ToArray(),
+            CameraBuffer = MemoryMarshal.Cast<CameraBuffer, byte>([cameraBuffer]).ToArray(),
+            LightBuffer = MemoryMarshal.Cast<LightBuffer, byte>([lightBuffer]).ToArray(),
         });
     }
-
-    private byte[] GetInstanceBuffer(List<InstanceRaw> instances)
-    {
-        var instanceArray = instances.ToArray();
-        var byteArray = MemoryMarshal.Cast<InstanceRaw, byte>(instanceArray.AsSpan()).ToArray();
-        return byteArray;
-    }
-
 
     private HashSet<uint> _loadedMaterialIds = new();
     private uint GetOrLoadMaterialId(Material material)
