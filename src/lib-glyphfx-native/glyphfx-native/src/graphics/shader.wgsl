@@ -27,6 +27,7 @@ struct InstanceInput {
 
 struct CameraUniform {
     view_proj: mat4x4<f32>,
+    pos: vec3<f32>,
 };
 @group(1) @binding(0)
 var<uniform> camera: CameraUniform;
@@ -78,8 +79,6 @@ var s_diffuse: sampler;
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
-    let camera_position = vec3<f32>(0, 2.0, 4.0);//TODO get camera position
-
     let object_color: vec4<f32> = textureSample(t_diffuse, s_diffuse, in.tex_coords);
 
     // We don't need (or want) much ambient light, so 0.1 is fine
@@ -91,7 +90,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let diffuse_strength = max(dot(in.world_normal, light_dir), 0.0);
     let diffuse_color = light.color * diffuse_strength;
 
-    let view_dir = normalize(camera_position - in.world_position);
+    let view_dir = normalize(camera.pos - in.world_position);
     let half_dir = normalize(view_dir + light_dir);
 
     let specular_strength = pow(max(dot(in.world_normal, half_dir), 0.0), 32.0);

@@ -106,13 +106,11 @@ public class Renderer : IRenderer
         };
         
         var instanceBuffer = GetInstanceBuffer(instancesList);
-        var cameraArray = new float[16];
-        for (var i = 0; i < 16; i++)
-            cameraArray[i] = camera.ViewProjection[i / 4, i % 4];
+        var cameraBuffer = new CameraBuffer(camera.ViewProjection, camera.Eye);
         _bridge.Send(new BeginRenderRequest()
         {
             InstanceBuffer = instanceBuffer,
-            CameraViewProjection = cameraArray
+            CameraBuffer = MemoryMarshal.Cast<CameraBuffer, byte>([cameraBuffer]).ToArray()
         });
     }
 

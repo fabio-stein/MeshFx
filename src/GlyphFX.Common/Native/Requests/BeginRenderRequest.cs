@@ -1,3 +1,4 @@
+using System.Numerics;
 using ProtoBuf;
 
 namespace GlyphFX.Common.Native;
@@ -11,7 +12,13 @@ public class BeginRenderRequest : INativeRequest<BeginRenderResponse>
     public byte[] InstanceBuffer { get; set; }
     
     [ProtoMember(2)]
-    public float[] CameraViewProjection { get; set; }
+    public byte[] CameraBuffer { get; set; }
+}
+
+public struct CameraBuffer(Matrix4x4 viewProjection, Vector3 pos)
+{
+    public Matrix4x4 ViewProjection { get; set; } = viewProjection;
+    public Vector3 Pos { get; set; } = pos;
 }
 
 [ProtoContract]
