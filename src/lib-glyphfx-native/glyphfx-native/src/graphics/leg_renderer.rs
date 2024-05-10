@@ -384,7 +384,7 @@ pub fn resize(state: &mut State, width: u32, height: u32) {
 
 pub type RenderCallback = fn(&'static mut RenderPass<'static>);
 
-pub fn render(state: &State, render_callback: RenderCallback, instances_matrix: Vec<u8>, camera_uniform: Vec<f32>){
+pub fn render(state: &State, render_callback: RenderCallback, instances_matrix: Vec<u8>, camera_uniform: Vec<u8>){
     let frame = state.surface
         .get_current_texture()
         .expect("Failed to acquire next swap chain texture");

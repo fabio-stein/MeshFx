@@ -8,7 +8,7 @@ message AppEventResponse {
 }
 message BeginRenderRequest {
    bytes InstanceBuffer = 1;
-   repeated float CameraViewProjection = 2 [packed = false];
+   bytes CameraBuffer = 2;
 }
 message BeginRenderResponse {
 }
