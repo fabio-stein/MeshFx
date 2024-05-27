@@ -1,0 +1,60 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeshFX.Common", "MeshFX.Common\MeshFX.Common.csproj", "{D851FB1E-AA6D-4B69-8B8F-A52F506E73E5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeshFX.Core", "MeshFX.Core\MeshFX.Core.csproj", "{ECD17D0E-85B4-41F2-99DE-5DFFF72617EA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeshFX.Desktop", "MeshFX.Desktop\MeshFX.Desktop.csproj", "{E623F74D-A0B8-4013-8ED1-AAC99AB25349}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeshFX.Web", "MeshFX.Web\MeshFX.Web.csproj", "{3416B6DE-DF3F-4498-920D-F69313F5E412}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeshFX.Examples", "MeshFX.Examples\MeshFX.Examples.csproj", "{CEFA4BE9-2412-4B9B-B623-15AF47812506}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeshFX.Examples.Desktop", "MeshFX.Examples.Desktop\MeshFX.Examples.Desktop.csproj", "{66DF61C1-49C0-432B-BA34-833FB7401B6E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeshFX.Examples.Web", "MeshFX.Examples.Web\MeshFX.Examples.Web.csproj", "{0739DBE8-100C-4220-8886-56E6B969320D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeshFX.Tools.ProtoGenerator", "MeshFX.Tools.ProtoGenerator\MeshFX.Tools.ProtoGenerator.csproj", "{D037FAA6-4AD9-46DA-BA41-42D8831F6FB1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D851FB1E-AA6D-4B69-8B8F-A52F506E73E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D851FB1E-AA6D-4B69-8B8F-A52F506E73E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D851FB1E-AA6D-4B69-8B8F-A52F506E73E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D851FB1E-AA6D-4B69-8B8F-A52F506E73E5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ECD17D0E-85B4-41F2-99DE-5DFFF72617EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECD17D0E-85B4-41F2-99DE-5DFFF72617EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECD17D0E-85B4-41F2-99DE-5DFFF72617EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECD17D0E-85B4-41F2-99DE-5DFFF72617EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E623F74D-A0B8-4013-8ED1-AAC99AB25349}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E623F74D-A0B8-4013-8ED1-AAC99AB25349}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E623F74D-A0B8-4013-8ED1-AAC99AB25349}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E623F74D-A0B8-4013-8ED1-AAC99AB25349}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3416B6DE-DF3F-4498-920D-F69313F5E412}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3416B6DE-DF3F-4498-920D-F69313F5E412}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3416B6DE-DF3F-4498-920D-F69313F5E412}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3416B6DE-DF3F-4498-920D-F69313F5E412}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CEFA4BE9-2412-4B9B-B623-15AF47812506}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEFA4BE9-2412-4B9B-B623-15AF47812506}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CEFA4BE9-2412-4B9B-B623-15AF47812506}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CEFA4BE9-2412-4B9B-B623-15AF47812506}.Release|Any CPU.Build.0 = Release|Any CPU
+		{66DF61C1-49C0-432B-BA34-833FB7401B6E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{66DF61C1-49C0-432B-BA34-833FB7401B6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{66DF61C1-49C0-432B-BA34-833FB7401B6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{66DF61C1-49C0-432B-BA34-833FB7401B6E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0739DBE8-100C-4220-8886-56E6B969320D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0739DBE8-100C-4220-8886-56E6B969320D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0739DBE8-100C-4220-8886-56E6B969320D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0739DBE8-100C-4220-8886-56E6B969320D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D037FAA6-4AD9-46DA-BA41-42D8831F6FB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D037FAA6-4AD9-46DA-BA41-42D8831F6FB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D037FAA6-4AD9-46DA-BA41-42D8831F6FB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D037FAA6-4AD9-46DA-BA41-42D8831F6FB1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+	EndGlobalSection
+EndGlobal

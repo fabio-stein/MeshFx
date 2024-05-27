@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk.WebAssembly">
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\MeshFX.Web\MeshFX.Web.csproj" />
+        <ProjectReference Include="..\MeshFX.Examples\MeshFX.Examples.csproj" />
+    </ItemGroup>
+</Project>

@@ -6,8 +6,8 @@ riderModule.iml
 .DS_Store
 target/
 .idea/
-/src/rust-core/glyphfx-winit/.idea
-src/rust-core/glyphfx-winit/.idea/glyphfx-winit.iml
-GlyphFX.Window/libwinit_wrapper.dylib
-GlyphFX.WebGpu/libwgpu_wrapper.dylib
-src/rust-core/glyphfx-winit/.idea/glyphfx-winit.iml
+/src/rust-core/meshfx-winit/.idea
+src/rust-core/meshfx-winit/.idea/meshfx-winit.iml
+MeshFX.Window/libwinit_wrapper.dylib
+MeshFX.WebGpu/libwgpu_wrapper.dylib
+src/rust-core/meshfx-winit/.idea/meshfx-winit.iml
