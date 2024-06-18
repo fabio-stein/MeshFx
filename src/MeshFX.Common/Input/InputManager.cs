@@ -4,7 +4,7 @@ namespace MeshFX.Common.Input;
 
 public class InputManager : IInputManager
 {
-    private HashSet<KeyCode> _pressedKeys = new();
+    private readonly HashSet<KeyCode> _pressedKeys = new();
     
     public InputManager(INativeRequestBridge bridge)
     {
