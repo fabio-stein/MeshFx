@@ -1,0 +1,14 @@
+{
+  "name": "meshfx-native",
+  "version": "0.1.0",
+  "files": [
+    "meshfx_native_bg.wasm",
+    "meshfx_native.js",
+    "meshfx_native.d.ts"
+  ],
+  "module": "meshfx_native.js",
+  "types": "meshfx_native.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
